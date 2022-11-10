@@ -4,38 +4,49 @@
 source(here::here("scripts/setup.R"))
 ```
 
-
+## Essai
 ```{r, echo = FALSE, message = FALSE}
-################ Exploratory analysis #################
+
 ggplot(dnb_results)+
   geom_bar(mapping = aes(x = registered, fill = department))
+```
 
-# number of admitted by region 
-dnb_results %>% 
-  select(admitted, region) %>% 
-    group_by(region) %>% 
-      summarise(sum = sum(admitted)) %>% 
-         ggplot(aes(x = region, y = sum, fill = region)) + 
-           geom_col() +
-             theme(axis.title.x=element_blank(),
-                   axis.text.x=element_blank(),
-                   axis.ticks.x=element_blank())
+Number of admitted by region 
+```{r, echo = FALSE, message = FALSE}
 
-#average success rate by department
 dnb_results %>% 
-  select(success_rate_pct, department) %>% 
+ select(admitted, region) %>% 
+ group_by(region) %>% 
+ summarise(sum = sum(admitted)) %>% 
+ ggplot(aes(x = region, y = sum, fill = region)) + 
+ geom_col() +
+ theme(axis.title.x=element_blank(),
+       axis.text.x=element_blank(),
+       axis.ticks.x=element_blank()
+       )
+```
+
+Average success rate by department
+```{r, echo = FALSE, message = FALSE}
+
+dnb_results %>% 
+  select(success_rate_pct, region) %>% 
   group_by(department) %>% 
   summarise(mean = mean(success_rate_pct)) %>% 
-  ggplot(aes(x = department, y = mean, fill = department)) + 
+  ggplot(aes(x = department, y = mean, fill = region)) + 
   geom_col() +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
+        axis.ticks.x=element_blank()
+        )
 
+```
 
+## esssai carte 
 
-############# esssai carte #########
-# creation of the map theme
+Creation of the map theme
+```{r, echo = FALSE, message = FALSE}
+
 map_theme <- theme(title=element_text(),
                    plot.title=element_text(margin=margin(20,20,20,20), size=18, hjust = 0.5),
                    axis.text.x=element_blank(),
@@ -45,17 +56,26 @@ map_theme <- theme(title=element_text(),
                    axis.title.y=element_blank(),
                    panel.grid.major= element_blank(), 
                    panel.background= element_blank()) 
+```
 
-#Creation of the dataset used for the map
+Creation of the dataset used for the map
+```{r, echo = FALSE, message = FALSE}
+
 result <- dnb_results %>% 
   select(department_fr, success_rate_pct) %>% 
   group_by(department_fr) %>% 
   summarise(mean = mean(success_rate_pct))
 
-#join the map and our new dataset
-result_map <- left_join(x = map[,-6], y = result)
+```
+Join the map from ggplot and our new dataset
+```{r, echo = FALSE, message = FALSE}
 
-#plot, 
+result_map <- left_join(x = map[,-6], y = result)
+```
+
+plot
+```{r, echo = FALSE, message = FALSE}
+
 ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
   geom_polygon() +
   coord_map() +
@@ -65,7 +85,6 @@ ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
        title = "Average success rate, xxxx-2021") +
   map_theme  
 #for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
-
 ```
 
 
