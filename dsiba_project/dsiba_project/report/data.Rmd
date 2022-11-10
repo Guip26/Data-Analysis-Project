@@ -19,7 +19,7 @@ For all data sets, we have to translate them 1. Translate the column names. 2. M
 
 As we will rename all data sets in the same way, we found it useful to create a function. The function has a data frame and a vector as inputs. It checks if the length of the vector is correct, if so it returns a tibble with the column names renamed
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 rename_df <- function(df, x){
   if (ncol(df) == length(x)){
@@ -35,7 +35,7 @@ rename_df <- function(df, x){
 
 1.  Translate the column names.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 dnb_colnames <- c("session", "school_id", "school_type", "establishment_name", "education_sector", "municipality_code", "municipality", "department_code", "department", "academy_code", "academy_name", "region_code", "region", "registered", "present", "admitted", "admitted_whitout", "admitted_AB", "admitted_B", "admitted_TB", "success_rate_pct"
 )
@@ -44,7 +44,7 @@ dnb_results <- rename_df(DNB_par_etablissement, dnb_colnames)
 
 2.  success_rate is of the form **,**% we want it as a double of the form **.**
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 dnb_results[["success_rate_pct"]] <- as.double(gsub("%","",
                                                gsub(",",".", dnb_results[["success_rate_pct"]])))
@@ -54,7 +54,7 @@ dnb_results[["success_rate_pct"]] <- as.double(gsub("%","",
 
 4.  We need to add a column department_fr that with department names matching the ones in ggplot.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
@@ -71,13 +71,18 @@ dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-A
 
 ```
 
-5.  No need for further data wrangling for this data set
+5.  We want some to know the attribution rate of each mention to use it in further calculations.
+```{r}
+dnb_results <- dnb_results %>% 
+  mutate()
+
+```
 
 ## establishment_24
 
 1.  Translate the column names.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 est_24_names <- c("region", "academy", "department", "municipality", "establishment", "school_id", "school_type", "education_sector", "postcode", "adress", "adress_2", "mail", "students", "priority_education", "city_school", "QPV", "ULIS", "SEGPA", "sport_section", "agricultural_high_school", "military_high_school", "vocational_high_school", "establishment_web", "SIREN_SIRET", "district", "ministry", "label_start_date", "label_end_date", "y_coordinate", "x_coordinate", "epsg", "precision_on_localisation", "latitude", "longitude", "position", "engaging_30_sport")
 establishment_24 <- rename_df(Etablissements_labellises_generation_2024, est_24_names)
 
@@ -86,7 +91,7 @@ establishment_24 <- rename_df(Etablissements_labellises_generation_2024, est_24_
 2.  No problem for this data set
 3.  We need to add two variables session_started and session_ended. Indeed as the label has a start and an End date we have to trace the first session and the last session where the establishment have the label generation 2024.Most labellisations start and end in January but a few start and end in middle of the year. Exams take place end of June, beginning of July. Therefore, we will consider labellisation done in August and after as done for the next academic year.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 establishment_24 <- establishment_24 %>% 
   mutate(session_started = case_when(month(label_start_date) <= 7 ~ year(label_start_date),
@@ -98,7 +103,7 @@ establishment_24 <- establishment_24 %>%
 
 4.  We need to add a column department_fr that with department names matching the ones in ggplot.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 establishment_24$department_fr <- stri_trans_general(establishment_24$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
@@ -116,7 +121,7 @@ establishment_24$department_fr <- stri_trans_general(establishment_24$department
 
 5.  We can create a high_school_type variable instead of agricultural_high_school, military_high_school, vocational_high_school and drop those variables.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 establishment_24 <- establishment_24 %>% 
   mutate(high_school_type = case_when(agricultural_high_school == 1 ~ "agricultural high school",
@@ -129,7 +134,7 @@ establishment_24 <- establishment_24 %>%
 
 1.  Translate the column names.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 housing_names <- c("year_back_to_school", "Academic_region", "academy", "department", "municipality", "school_id", "establishment_main_name", "establishment_name", "school_type", "education_sector", "students_secondary_education", "students_higher_education", "external_students_secondary_education", "half_boarders_students_secondary_education", "boarding_students_secondary_education", "external_students_higher_education", "half_board_students_higher_education", "boarding_students_higher_education")
 student_housing <- rename_df(Hebergement_eleves_etablissements_2d, housing_names)
@@ -140,7 +145,7 @@ student_housing <- rename_df(Hebergement_eleves_etablissements_2d, housing_names
 
 3.  We need to create a session variable as year_back_to_school refers to the beginning of the school year and not the exam session.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 student_housing <- student_housing %>% 
   mutate(session = year_back_to_school + 1) %>% 
@@ -149,7 +154,7 @@ student_housing <- student_housing %>%
 
 4.  We need to add a column department_fr that with department names matching the ones in ggplot.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 student_housing$department_fr <- stri_trans_general(student_housing$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
   gsub("Du", "du", .) %>% 
@@ -171,7 +176,7 @@ student_housing$department_fr <- stri_trans_general(student_housing$department, 
 
 1.  Translate the column names.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 sg_parent_names <- c("geocode", "municipality", "year","sing_par")
 
 ```
@@ -182,7 +187,7 @@ sg_parent_names <- c("geocode", "municipality", "year","sing_par")
 
     can try to implement API (further idea)
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 #1
 covide_names <- c("department_code", "test_week", "educational_level", "age_group", "pop", "positive", "tested", "incidence_rate", "positivity_rate", "screening_rate")
 covid_in_schools <- rename_df(Covid_sp_dep_7j_cage_scol_2022_10_10_19h02,covide_names)
@@ -190,7 +195,7 @@ covid_in_schools <- rename_df(Covid_sp_dep_7j_cage_scol_2022_10_10_19h02,covide_
 
 2.  test_week will be treated in (3.). positive, incidence_rate and positivity_rate need to be doubles
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 covid_in_schools[["positive"]] <- as.double(gsub(",",".", covid_in_schools[["positive"]]))
 covid_in_schools[["incidence_rate"]] <- as.double(gsub(",",".", covid_in_schools[["incidence_rate"]]))
 covid_in_schools[["positivity_rate"]] <- as.double(gsub(",",".", covid_in_schools[["positivity_rate"]]))
@@ -198,7 +203,7 @@ covid_in_schools[["positivity_rate"]] <- as.double(gsub(",",".", covid_in_school
 
 3.  We need to create two new variables. The first will be the date categorizing each week. We chose the first date (Monday). The test for a session will be those from August to July of the next year. As our argument will be set on the month, we might have some test done the first days of august count towards the "wrong" session. The number of Covid cases in August are relatively low compared to the rest of the year and it represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 covid_in_schools <- covid_in_schools %>% 
   mutate(test_date = ymd(substr(test_week,1,10)),
          session = case_when(month(test_date) <= 7 ~ year(test_date),
@@ -207,13 +212,13 @@ covid_in_schools <- covid_in_schools %>%
 
 4.  Only department code. We need to input the names of the departments.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 ```
 
 5.  To simplify the dataset, we need to drop all but 11-15 educational_level.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 
 ```
 
@@ -221,13 +226,13 @@ covid_in_schools <- covid_in_schools %>%
 
 We will use the ggplot France map for our visualizations
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 map <- map_data("france")
 ```
 
 The region variable is in fact the departments. A quick renaming is necessary.
 
-```{r, echo=FALSE, message= = FALSE}
+```{r}
 colnames(map)[5]<- "department_fr"
 
 ```
