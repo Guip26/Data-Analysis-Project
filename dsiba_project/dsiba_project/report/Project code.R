@@ -5,11 +5,6 @@ library(lubridate)
 library(stringr)
 library(stringi)
 library(readr)
-################ Import data  #############
-DNB_par_etablissement <- read_delim("Data/DNB-par-etablissement.csv", ";", quote = "'", escape_double = FALSE, trim_ws = TRUE)
-Hebergement_eleves_etablissements_2d <- read_delim("Data/Hebergement-eleves-etablissements-2d.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-Etablissements_labellises_generation_2024 <- read_delim("Data/Etablissements-labellises-generation-2024.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-Covid_sp_dep_7j_cage_scol_2022_10_10_19h02 <- read_delim("Data/Covid-sp-dep-7j-cage-scol-2022-10-10-19h02.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
 ################ Data Wrangling #################
 
