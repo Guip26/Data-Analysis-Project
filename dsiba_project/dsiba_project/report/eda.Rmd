@@ -5,6 +5,7 @@ source(here::here("scripts/setup.R"))
 ```
 
 ## Essai
+We are mostly exploring our options and have yet to truly deep dive into it
 ```{r}
 
 ggplot(dnb_results)+
@@ -46,8 +47,8 @@ dnb_results %>%
 regression Essai 
 
 ```{r}
-
-
+lm1 <- lm(dnb_results$TB_pct ~ dnb_results$without_pct + dnb_results$B_pct + dnb_results$AB_pct + dnb_results$without_pct)
+summary(lm1)
 ```
 
 
