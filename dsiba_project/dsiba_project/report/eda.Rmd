@@ -43,6 +43,7 @@ dnb_results %>%
 ```
 
 
+regression Essai 
 
 ```{r}
 

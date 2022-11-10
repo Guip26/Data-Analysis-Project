@@ -37,7 +37,7 @@ rename_df <- function(df, x){
 
 ```{r}
 
-dnb_colnames <- c("session", "school_id", "school_type", "establishment_name", "education_sector", "municipality_code", "municipality", "department_code", "department", "academy_code", "academy_name", "region_code", "region", "registered", "present", "admitted", "admitted_whitout", "admitted_AB", "admitted_B", "admitted_TB", "success_rate_pct"
+dnb_colnames <- c("session", "school_id", "school_type", "establishment_name", "education_sector", "municipality_code", "municipality", "department_code", "department", "academy_code", "academy_name", "region_code", "region", "registered", "present", "admitted", "admitted_without", "admitted_AB", "admitted_B", "admitted_TB", "success_rate_pct"
 )
 dnb_results <- rename_df(DNB_par_etablissement, dnb_colnames)
 ```
@@ -74,7 +74,11 @@ dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-A
 5.  We want some to know the attribution rate of each mention to use it in further calculations.
 ```{r}
 dnb_results <- dnb_results %>% 
-  mutate()
+  mutate(without_pct = admitted_without/admitted*100,
+         AB_pct = admitted_AB/admitted*100,
+         B_pct = admitted_B/admitted*100,
+         TB_pct = admitted_TB/admitted*100
+         )
 
 ```
 
