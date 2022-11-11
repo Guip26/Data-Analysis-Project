@@ -1,0 +1,9 @@
+---
+title: "Exploring the factors influencing secondary school success in France"
+author: "Dounia Dommane, Cynthia Randriananja and Guillaume Péclard"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r child = c('intro.Rmd', 'data.Rmd', 'eda.Rmd', 'analysis.Rmd', 'concl.Rmd')}
+```
