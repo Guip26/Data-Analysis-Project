@@ -22,11 +22,12 @@ Covid_sp_dep_7j_cage_scol_2022_10_10_19h02 <- read_delim(here::here("data/Covid-
 
 # Data Wrangling
 
-For all data sets we have to:  
-1. Translate the column names. 
-2. Make sure that all data are of the right type. 
-3. Make sure that the time reference (year) are all aligned with the exam session. 
-4. Add a column department_fr that with department names matching the ones in ggplot.
+For all data sets we have to: 
+
+1.  Translate the column names. 
+2.  Make sure that all data are of the right type. 
+3.  Make sure that the time reference (year) are all aligned with the exam session. 
+4.  Add a column department_fr that with department names matching the ones in ggplot.
 
 ## Function
 
@@ -45,6 +46,8 @@ rename_df <- function(df, x){
 ```
 
 ## dnb_results
+
+This dataset presents the results of the diplôme national du brevet by school, for schools in metropolitan France and for the overseas departments and regions.  This data set contains 139’580 observations.
 
 1.  Translate the column names.
 
@@ -98,6 +101,8 @@ dnb_results <- dnb_results %>%
 
 ## establishment_24
 
+This data set gathers all schools which have been awarded the "Generation 2024" label. Its aim is to develop bridges between the school world and the sports movement in order to encourage young people to practice physical activity and sport. This data set contains 6’883 observations.
+
 1.  Translate the column names.
 
 ```{r, echo = TRUE}
@@ -150,6 +155,8 @@ establishment_24 <- establishment_24 %>%
 
 ## student_housing
 
+This dataset records enrolment in secondary schools according to the type of accommodation for pupils: half-board, boarding school etc. This data set contains 32’096 observations.
+
 1.  Translate the column names.
 
 ```{r, echo = TRUE}
@@ -190,7 +197,9 @@ student_housing$department_fr <- stri_trans_general(student_housing$department, 
 
 5.  No need for further data wrangling for this data set
 
-##single_parent
+## single_parent
+
+This data set provides information about the single-parent families in each municipality. The census has been made every five years since 2008. This data set contains 104’986 observations
 
 1.  Translate the column names.
 
@@ -200,6 +209,9 @@ sg_parent_names <- c("geocode", "municipality", "year","sing_par")
 ```
 
 ## covid_in_schools
+
+This is a time based data set that gives us information on the COVID tests and results carried out by laboratories, hospitals, pharmacists, doctors and nurses. It is updated daily. On the 11th October, the data set contained 543’974 observations.
+
 
 1.  Translate the column names.
 

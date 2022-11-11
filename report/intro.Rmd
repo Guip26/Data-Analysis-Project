@@ -3,7 +3,35 @@
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 source(here::here("scripts/setup.R"))
 ```
+## Background and motivation
 
-* Overview and Motivation
-* Related Work
-* Research questions
+Human resources are the most valuable asset in any country¹. They are the main reason behind the success or the failure of any organization. In fact, having an educated and competent manpower is the key driver to economic and social development. In this context, the importance of academic education has become undeniable. Therefore, it is crucial to invest money and time in order to study students’ academic performance and figure out effective ways to improve it. 
+
+Given the importance of the topic, it has been given particular attention in past research. In fact, many studies have been conducted in order to analyze the factors impacting students’ academic performance. While some studies focused on the psychological variables, such as Franck Amadieu & André Tricot’s research², other researchers have been interested in the impact of other elements such as mobility ³, gender and other socio-economic factors on students’ academic success.
+
+Many reasons motivated us to choose this topic of research. In fact, as students, we are very passionate about the educational field. Thus, we want to provide through this project a detailed analysis that can be used as a reference guide for leaders working in the educational field. Mainly, we want to help schools and universities to have a better understanding of the factors influencing students’ academic performance in order to improve their decision-making processes, students’ success rate and eventually their overall organization.
+
+Source: 
+¹ Gestion des ressources humaines,Jean-Marie Peretti, 2004.
+² Psychological factors which have an effect on student success ,2015.
+³ La migration pour études : Regards d’intervenants sur l’accueil et l’intégration des nouveaux étudiants »,2009.
+
+## Project objectives
+
+The aim of the project is to understand the evolution of secondary academic performance in France. Our study will mainly focus on 3rd grade students (equivalent to 11th grade in Switzerland) and their results on the Diplôme National du Brevet (DNB) by school. 
+
+First, we will observe whether there are improvements or, on the contrary, deterioration in admissions of DNB over the years. From this dataset, we will also make comparisons, particularly at the geographical level, and an analysis of the success rate in terms of distinction for each school. 
+
+Then, we will try to understand if there is a correlation between academic success and some socio-economic factors, such as the type of accommodation, the single-parent families rate, and the involvement of schools in students’ physical and sports practice. 
+Finally, despite these factors, we will investigate whether the COVID-19 pandemic has had a direct negative impact on students’ school performance.
+ 
+
+
+## Research questions
+
+-  What is the evolution of student performance over time and across the different regions/departments of France?
+
+-  Do socio-economic factors such as the type of accommodation, family situation or college policies have an influence on student success ?
+
+-  Has the COVID-19 pandemic impacted student performance?
+
