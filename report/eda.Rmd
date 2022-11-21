@@ -16,6 +16,7 @@ dnb_pct_dep <- dnb_results %>%
             TB_pct_dep = mean(TB_pct, na.rm = TRUE),
             without_pct_dep = mean(without_pct, na.rm = TRUE),
             success_rate_pct_dep = mean(success_rate_pct, na.rm = TRUE))
+datatable(dnb_pct_dep)
 ```
 
 
