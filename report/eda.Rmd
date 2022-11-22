@@ -590,7 +590,7 @@ Creation of the dataset used for the map
 result <- dnb_results %>% 
   select(department_fr, success_rate_pct) %>% 
   group_by(department_fr) %>% 
-  summarise(mean = mean(success_rate_pct))
+  summarise(success_rate = mean(success_rate_pct))
 
 ```
 
@@ -603,9 +603,12 @@ result_map <- left_join(x = map[,-6], y = result)
 
 plot
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, warning=FALSE, out.width='75%', out.height= '75%'}
 
-ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
+p <- ggplot(result_map, aes(long,lat, 
+                            group = group, 
+                            fill = success_rate, 
+                            text = department_fr)) +
   geom_polygon() +
   coord_map() +
   scale_fill_viridis(name = "Average sucess rate")+
@@ -614,6 +617,7 @@ ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
        title = "Average success rate, 2006-2021") +
   map_theme
   
+ggplotly(p, tooltip = c("text", "fill") )
 
 #for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
 ```
