@@ -103,7 +103,7 @@ dnb_results <- dnb_results %>%
 We can see the final table *dnb_results* below. 
 
 ```{r}
-datatable(dnb_results)
+#datatable(dnb_results)
 ```
 
 
@@ -164,7 +164,7 @@ establishment_24 <- establishment_24 %>%
 We can see the final table *establishment_24* below. 
 
 ```{r}
-datatable(establishment_24)
+#datatable(establishment_24)
 ```
 
 
@@ -216,7 +216,7 @@ student_housing$department_fr <- stri_trans_general(student_housing$department, 
 We can see the final table *student_housing* below. 
 
 ```{r}
-datatable(student_housing)
+#datatable(student_housing)
 ```
 
 
@@ -278,7 +278,7 @@ covid_in_schools <- covid_in_schools %>%
 We can see the final table *covid_in_schools* below. 
 
 ```{r}
-datatable(covid_in_schools)
+#datatable(covid_in_schools)
 ```
 
 

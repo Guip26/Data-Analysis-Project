@@ -5,10 +5,11 @@ source(here::here("scripts/setup.R"))
 ```
 
 ## Essai
-We are mostly exploring our options and have yet to truly deep dive into this portion of our project. 
 
-### Box plot Analysis
+We are mostly exploring our options and have yet to truly deep dive into this portion of our project.
+
 ```{r}
+
 dnb_pct_dep <- dnb_results %>%
   group_by(department, session) %>% 
   summarise(AB_pct_dep = mean(AB_pct, na.rm = TRUE),
@@ -19,23 +20,183 @@ dnb_pct_dep <- dnb_results %>%
 datatable(dnb_pct_dep)
 ```
 
+### Box plot Analysis per department {.tabset}
 
+#### success_rate_pct
 
-```{r}
+```{r, warning = FALSE}
 
-dnb_pct_dep %>% 
-  ggplot(aes(x = session, y = AB_pct_dep, group = session, fill = session)) +
+p <- dnb_pct_dep %>% 
+  ggplot(aes(x = session, 
+             y = success_rate_pct_dep, 
+             group = session, 
+             fill = session, 
+             text = department,
+             text2 = success_rate_pct_dep)) +
         geom_boxplot()+
         geom_jitter(width = 0.25, alpha = 0.5)+ 
         scale_fill_gradientn(colors = viridis(16))+
-        guides(fill = "none")
- # ggplotly(tooltip = c("department", "AB_pct_dep")) does not show department
+        guides(fill = "none")+
+        labs( x= "", y = "Success rate in %",
+                title ="Success rate of each Department by session")
+
+ggplotly(p, tooltip = c("text","text2"))
+```
+
+#### without_pct
+
+```{r, warning = FALSE}
+
+p <- dnb_pct_dep %>% 
+  ggplot(aes(x = session, 
+             y = without_pct_dep, 
+             group = session, 
+             fill = session, 
+             text = department,
+             text2 = without_pct_dep)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+ 
+        scale_fill_gradientn(colors = viridis(16))+
+        guides(fill = "none")+
+        labs( x= "", 
+              y = "Rate of students with no mention in %",
+              title ="Rate of students with no mention of each Department by session")
+
+ggplotly(p, tooltip = c("text","text2"))
+        
+```
+
+#### B_pct
+
+```{r, warning = FALSE}
+
+p <- dnb_pct_dep %>% 
+  ggplot(aes(x = session, 
+             y = B_pct_dep, 
+             group = session, 
+             fill = session, 
+             text = department,
+             text2 = B_pct_dep)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+ 
+        scale_fill_gradientn(colors = viridis(16))+
+        guides(fill = "none")+
+        labs( x= "", 
+              y = "Rate of students with mention Bien in %",
+              title ="Rate of students with mention Bien of each Department by session")
+
+ggplotly(p, tooltip = c("text","text2"))
+```
+
+#### AB_pct
+
+```{r, warning = FALSE}
+
+p <- dnb_pct_dep %>% 
+  ggplot(aes(x = session, 
+             y = AB_pct_dep, 
+             group = session, 
+             fill = session, 
+             text = department,
+             text2 = AB_pct_dep)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+ 
+        scale_fill_gradientn(colors = viridis(16))+
+        guides(fill = "none")+
+        labs( x= "", 
+              y = "Rate of students with mention Assez Bien in %",
+              title ="Rate of students with mention Assez Bien of each Department by session")
+
+ggplotly(p, tooltip = c("text","text2"))
+```
+
+#### TB_pct
+
+```{r, warning = FALSE}
+
+p <- dnb_pct_dep %>% 
+  ggplot(aes(x = session, 
+             y = TB_pct_dep, 
+             group = session, 
+             fill = session, 
+             text = department,
+             text2 = TB_pct_dep)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+ 
+        scale_fill_gradientn(colors = viridis(16))+
+        guides(fill = "none")+
+        labs( x= "", 
+              y = "Rate of students with mention Très Bien in %",
+              title ="Rate of students with mention Très Bien of each Department by session")
+
+ggplotly(p, tooltip = c("text","text2"))
+
+```
+
+###  {.unnumbered}
+
+### Box plot Analysis of highest performing department {.tabset}
+
+#### Paris 2020
+
+```{r}
+
+Paris <- dnb_results %>%
+  select(school_id,establishment_name,department,session, contains("pct")) %>% 
+  filter(department == "PARIS", session == "2020") %>% 
+  pivot_longer(c(contains("pct")), # pivot longer to allow for a clean and easy boxplot graph with each pct
+               names_to = "Mention_type",
+               values_to = "Rate")
+Paris$Mention_type <- factor(Paris$Mention_type, levels = c("success_rate_pct","without_pct", "AB_pct", "B_pct", "TB_pct")) #creation of factor to order the graph
+
+p <- Paris %>% 
+ ggplot(aes(x = Mention_type, 
+             y = Rate, 
+             fill = Mention_type, 
+             text = establishment_name,
+             text2 = Rate)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+
+        guides(fill = "none")+
+        scale_fill_brewer(palette="Spectral")+
+        labs( x= "", 
+              y = "Rate in %",
+              title ="Results for Parisian establishments in 2020")
+
+ggplotly(p, tooltip = c("text","text2"))
 
 
 ```
 
+#### Guyane 2006
+```{r}
 
+Guyane <- dnb_results %>%
+  select(school_id,establishment_name,department,session, contains("pct")) %>% 
+  filter(department == "GUYANE", session == "2006") %>% 
+  pivot_longer(c(contains("pct")), # pivot longer to allow for a clean and easy boxplot graph with each pct
+               names_to = "Mention_type",
+               values_to = "Rate")
+Guyane$Mention_type <- factor(Guyane$Mention_type, levels = c("success_rate_pct","without_pct", "AB_pct", "B_pct", "TB_pct")) #creation of factor to order the graph
 
+p <- Guyane %>% 
+ ggplot(aes(x = Mention_type, 
+             y = Rate, 
+             fill = Mention_type, 
+             text = establishment_name,
+             text2 = Rate)) +
+        geom_boxplot()+
+        geom_jitter(width = 0.25, alpha = 0.5)+
+        guides(fill = "none")+
+        scale_fill_brewer(palette="Spectral")+
+        labs( x= "", 
+              y = "Rate in %",
+              title ="Results for Guyanese establishments in 2020")
+
+ggplotly(p, tooltip = c("text","text2"))
+```
+
+###  {.unnumbered}
 
 ```{r, echo = TRUE}
 
@@ -43,7 +204,8 @@ ggplot(dnb_results)+
   geom_bar(mapping = aes(x = registered, fill = department))
 ```
 
-Number of admitted by region 
+Number of admitted by region
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -58,7 +220,8 @@ dnb_results %>%
        )
 ```
 
-Average TB percentage by region 
+Average TB percentage by region
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -73,7 +236,8 @@ dnb_results %>%
        )
 ```
 
-Average AB percentage by region 
+Average AB percentage by region
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -88,7 +252,8 @@ dnb_results %>%
        )
 ```
 
-Average B percentage by region 
+Average B percentage by region
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -103,7 +268,8 @@ dnb_results %>%
        )
 ```
 
-Average percentage of admitted without mention students by region 
+Average percentage of admitted without mention students by region
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -119,6 +285,7 @@ dnb_results %>%
 ```
 
 Average success rate by department
+
 ```{r, echo = TRUE}
 
 dnb_results %>% 
@@ -134,16 +301,14 @@ dnb_results %>%
 
 ```
 
-
-regression Essai 
+regression Essai
 
 ```{r, echo = TRUE}
 lm1 <- lm(dnb_results$TB_pct ~ dnb_results$without_pct + dnb_results$B_pct + dnb_results$AB_pct + dnb_results$without_pct)
 summary(lm1)
 ```
 
-
-cluster Essai 
+cluster Essai
 
 ```{r, echo = TRUE}
 dnb_pct_dep <- dnb_results %>%
@@ -163,10 +328,10 @@ plot(mydata.hclust)
 
 ```
 
-
-## esssai carte 
+## esssai carte
 
 Creation of the map theme
+
 ```{r, echo = TRUE}
 
 map_theme <- theme(title=element_text(),
@@ -181,6 +346,7 @@ map_theme <- theme(title=element_text(),
 ```
 
 Creation of the dataset used for the map
+
 ```{r, echo = TRUE}
 
 result <- dnb_results %>% 
@@ -189,13 +355,16 @@ result <- dnb_results %>%
   summarise(mean = mean(success_rate_pct))
 
 ```
+
 Join the map from ggplot and our new dataset
+
 ```{r, echo = TRUE}
 
 result_map <- left_join(x = map[,-6], y = result)
 ```
 
 plot
+
 ```{r, echo = TRUE}
 
 ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
@@ -209,9 +378,8 @@ ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
 #for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
 ```
 
-
-* Mapping out the underlying structure
-* Identifying the most important variables
-* Univariate visualizations
-* Multivariate visualizations
-* Summary tables
+-   Mapping out the underlying structure
+-   Identifying the most important variables
+-   Univariate visualizations
+-   Multivariate visualizations
+-   Summary tables
