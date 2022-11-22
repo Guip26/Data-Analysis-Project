@@ -8,6 +8,347 @@ source(here::here("scripts/setup.R"))
 
 We are mostly exploring our options and have yet to truly deep dive into this portion of our project.
 
+##National analysis
+
+```{r}
+France_results <- dnb_results %>% #select(session,registered, present, contains("admitted")) %>% 
+  group_by(session) %>% 
+  summarise(registered = sum(registered),
+            present = sum(present),
+            admitted = sum(admitted),
+            admitted_without = sum(admitted_without),
+            admitted_AB = sum(admitted_AB),
+            admitted_B = sum(admitted_B),
+            admitted_TB = sum(admitted_TB),
+            without_pct = mean(without_pct, na.rm = TRUE),
+            AB_pct = mean(AB_pct, na.rm = TRUE),
+            B_pct = mean(B_pct, na.rm = TRUE),
+            TB_pct = mean(TB_pct, na.rm = TRUE),
+            success_rate_pct = mean(success_rate_pct, na.rm = TRUE)) %>% 
+  pivot_longer(c(registered, present,contains("admitted")),
+               names_to = "Candidates",
+               values_to = "Number_of_students") %>% 
+   pivot_longer(c(contains("pct")), 
+               names_to = "Mention_type",
+               values_to = "Rate")
+
+
+
+```
+
+ National DNB statistics 
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+
+p <- France_results %>% 
+  ggplot(aes(x = session, y = Number_of_students, group = Candidates, color = Candidates))+
+  geom_line()+
+  scale_color_viridis(discrete = TRUE) +
+    ggtitle("National DNB statistics") +
+    theme_ipsum() +
+    ylab("Number of students")
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+National DNB statistics (rate)
+
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+
+p <- France_results %>% 
+  ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
+  geom_line()+
+  scale_color_viridis(discrete = TRUE) +
+    ggtitle("National DNB statistics") +
+    theme_ipsum() +
+    ylab("Rate in %")
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+## Regional Analysis
+
+Success rate
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+  select(success_rate_pct, region, department) %>% 
+  group_by(region) %>% 
+  summarise(success_rate = mean(success_rate_pct, na.rm = TRUE)) %>% 
+  ggplot(aes(x = region, 
+             y = success_rate, 
+             fill = region)) + 
+         geom_col() +
+         scale_fill_viridis(discrete = TRUE) +
+         theme_ipsum() +
+         ggtitle("Success rate") +
+         ylab("Rate in %")+
+         theme(axis.title.x=element_blank(),
+               axis.text.x=element_blank(),
+               axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+
+
+### Number of students per result and region during the period 2006-2021 {.tabset}
+#### Number of admitted by region
+
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+ select(admitted, region) %>% 
+ group_by(region) %>% 
+ summarise(admitted = sum(admitted)) %>% 
+ ggplot(aes(x = region,
+            y = admitted, 
+            fill = region)) + 
+        geom_col() +
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Number of admitted by region") +
+        ylab("Number of students")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+#### Admitted with zero mention
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+ select(admitted_without, region) %>% 
+ group_by(region) %>% 
+ summarise(zero = sum(admitted_without)) %>% 
+ ggplot(aes(x = region, 
+            y = zero, 
+            fill = region)) + 
+        geom_col() +
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with zero mention") +
+        ylab("Number of students")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+
+#### Admitted with mention AB
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+ select(admitted_AB, region) %>% 
+ group_by(region) %>% 
+ summarise(AB = sum(admitted_AB)) %>% 
+ ggplot(aes(x = region, 
+            y = AB, 
+            fill = region)) + 
+        geom_col() +
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention AB") +
+        ylab("Number of students")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+
+#### Admitted with mention B
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+ select(admitted_B, region) %>% 
+ group_by(region) %>% 
+ summarise(B = sum(admitted_B)) %>% 
+ ggplot(aes(x = region, 
+            y = B, 
+            fill = region)) + 
+        geom_col() +
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention B") +
+        ylab("Number of students")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+
+#### Admitted with mention TB
+
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+
+p <- dnb_results %>% 
+ select(admitted_TB, region) %>% 
+ group_by(region) %>% 
+ summarise(TB = sum(admitted_TB)) %>% 
+ ggplot(aes(x = region, 
+            y = TB, 
+            fill = region)) + 
+        geom_col() +
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention TB") +
+        ylab("Number of students")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+```
+
+###{-}
+
+### Period 2006-2021 by region {.tabset}
+#### Success rate
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+ p <- dnb_results %>% 
+ select(success_rate_pct, region, session) %>% 
+ group_by(region, session) %>% 
+ summarise(success_rate = mean(success_rate_pct, na.rm = TRUE)) %>% 
+ ggplot(aes(x = session, 
+            y = success_rate, 
+            color = region,
+            text = region)) + 
+        geom_line() +
+        scale_color_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Success rate") +
+        ylab("Rate in %")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("text","x" ,"y" ))
+
+```
+
+#### Admitted with zero mention
+
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+ p <- dnb_results %>% 
+ select(without_pct, region, session) %>% 
+ group_by(region, session) %>% 
+ summarise(zero = mean(without_pct, na.rm = TRUE)) %>% 
+ ggplot(aes(x = session, 
+            y = zero, 
+            color = region,
+            text = region)) + 
+        geom_line() +
+        scale_color_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with zero mention") +
+        ylab("Rate in %")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("text","x" ,"y" ))
+
+```
+
+#### Admitted with mention AB
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+ p <- dnb_results %>% 
+ select(AB_pct, region, session) %>% 
+ group_by(region, session) %>% 
+ summarise(AB = mean(AB_pct, na.rm = TRUE)) %>% 
+ ggplot(aes(x = session, 
+            y = AB, 
+            color = region,
+            text = region)) + 
+        geom_line() +
+        scale_color_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention AB") +
+        ylab("Rate in %")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("text","x" ,"y" ))
+
+```
+
+#### Admitted with mention B
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+ p <- dnb_results %>% 
+ select(B_pct, region, session) %>% 
+ group_by(region, session) %>% 
+ summarise(B = mean(B_pct, na.rm = TRUE)) %>% 
+ ggplot(aes(x = session, 
+            y = B, 
+            color = region,
+            text = region)) + 
+        geom_line() +
+        scale_color_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention B") +
+        ylab("Rate in %")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("text","x" ,"y" ))
+
+```
+
+#### Admitted with mention TB
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+ p <- dnb_results %>% 
+ select(TB_pct, region, session) %>% 
+ group_by(region, session) %>% 
+ summarise(TB = mean(TB_pct, na.rm = TRUE)) %>% 
+ ggplot(aes(x = session, 
+            y = TB, 
+            color = region,
+            text = region)) + 
+        geom_line() +
+        scale_color_viridis(discrete = TRUE) +
+        theme_ipsum() +
+        ggtitle("Admitted with mention AB") +
+        ylab("Rate in %")+
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank())
+
+ggplotly(p, tooltip = c("text","x" ,"y" ))
+
+```
+
+###{-}
+
+## Departmental Analysis
+### Box plot Analysis per department {.tabset}
+
 ```{r}
 
 dnb_pct_dep <- dnb_results %>%
@@ -20,11 +361,9 @@ dnb_pct_dep <- dnb_results %>%
 datatable(dnb_pct_dep)
 ```
 
-### Box plot Analysis per department {.tabset}
-
 #### success_rate_pct
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -45,7 +384,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 #### without_pct
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -68,7 +407,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 #### B_pct
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -90,7 +429,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 #### AB_pct
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -112,7 +451,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 #### TB_pct
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -135,11 +474,12 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ###  {.unnumbered}
 
-### Box plot Analysis of highest performing department {.tabset}
+### Box plot Analysis of at the Department level {.tabset}
 
 #### Paris 2020
+First analysis of the best performing highest rate of TB -> Paris 2020
 
-```{r}
+```{r, out.width='100%', out.height= '50%'}
 
 Paris <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -158,7 +498,8 @@ p <- Paris %>%
         geom_boxplot()+
         geom_jitter(width = 0.25, alpha = 0.5)+
         guides(fill = "none")+
-        scale_fill_brewer(palette="Spectral")+
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
         labs( x= "", 
               y = "Rate in %",
               title ="Results for Parisian establishments in 2020")
@@ -168,8 +509,10 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
+
 #### Guyane 2006
-```{r}
+Lowest performing department in TB rate and "best" in zero mention rate -> Guyane 2006
+```{r, out.width='100%', out.height= '50%'}
 
 Guyane <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -188,7 +531,8 @@ p <- Guyane %>%
         geom_boxplot()+
         geom_jitter(width = 0.25, alpha = 0.5)+
         guides(fill = "none")+
-        scale_fill_brewer(palette="Spectral")+
+        scale_fill_viridis(discrete = TRUE) +
+        theme_ipsum() +
         labs( x= "", 
               y = "Rate in %",
               title ="Results for Guyanese establishments in 2020")
@@ -198,135 +542,29 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ###  {.unnumbered}
 
-```{r, echo = TRUE}
+## Establishment_24
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+g <- list(
+  scope = 'world',
+  showland = TRUE,
+  landcolor = toRGB("grey83"),
+  subunitcolor = toRGB("white"),
+  countrycolor = toRGB("white"),
+  showlakes = TRUE,
+  lakecolor = toRGB("white"),
+  showsubunits = TRUE,
+  showcountries = TRUE,
+  resolution = 50
+)
 
-ggplot(dnb_results)+
-  geom_bar(mapping = aes(x = registered, fill = department))
+fig <- plot_geo(establishment_24, lat = ~latitude, lon = ~longitude)
+fig <- fig %>% 
+  layout(title = 'Establishment labellised Generation 2024', geo = g) %>% 
+  add_markers(text = ~paste(department, establishment, sep = "<br />"),
+              hoverinfo = "text")
+fig
 ```
 
-Number of admitted by region
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
- select(admitted, region) %>% 
- group_by(region) %>% 
- summarise(sum = sum(admitted)) %>% 
- ggplot(aes(x = region, y = sum, fill = region)) + 
- geom_col() +
- theme(axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank()
-       )
-```
-
-Average TB percentage by region
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
- select(TB_pct, region) %>% 
- group_by(region) %>% 
- summarise(mean = mean(TB_pct, na.rm = TRUE)) %>% 
- ggplot(aes(x = region, y = mean, fill = region)) + 
- geom_col() +
- theme(axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank()
-       )
-```
-
-Average AB percentage by region
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
- select(AB_pct, region) %>% 
- group_by(region) %>% 
- summarise(mean = mean(AB_pct, na.rm = TRUE)) %>% 
- ggplot(aes(x = region, y = mean, fill = region)) + 
- geom_col() +
- theme(axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank()
-       )
-```
-
-Average B percentage by region
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
- select(B_pct, region) %>% 
- group_by(region) %>% 
- summarise(mean = mean(B_pct, na.rm = TRUE)) %>% 
- ggplot(aes(x = region, y = mean, fill = region)) + 
- geom_col() +
- theme(axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank()
-       )
-```
-
-Average percentage of admitted without mention students by region
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
- select(without_pct, region) %>% 
- group_by(region) %>% 
- summarise(mean = mean(without_pct, na.rm = TRUE)) %>% 
- ggplot(aes(x = region, y = mean, fill = region)) + 
- geom_col() +
- theme(axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank()
-       )
-```
-
-Average success rate by department
-
-```{r, echo = TRUE}
-
-dnb_results %>% 
-  select(success_rate_pct, region, department) %>% 
-  group_by(department) %>% 
-  summarise(mean = mean(success_rate_pct, na.rm = TRUE)) %>% 
-  ggplot(aes(x = department, y = mean, fill = department)) + 
-  geom_col() +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()
-        )
-
-```
-
-regression Essai
-
-```{r, echo = TRUE}
-lm1 <- lm(dnb_results$TB_pct ~ dnb_results$without_pct + dnb_results$B_pct + dnb_results$AB_pct + dnb_results$without_pct)
-summary(lm1)
-```
-
-cluster Essai
-
-```{r, echo = TRUE}
-dnb_pct_dep <- dnb_results %>%
-  group_by(department, session) %>% 
-  summarise(AB_pct_dep = mean(AB_pct, na.rm = TRUE),
-            B_pct_dep = mean(B_pct, na.rm = TRUE),
-            TB_pct_dep = mean(TB_pct, na.rm = TRUE),
-            without_pct_dep = mean(without_pct, na.rm = TRUE),
-            success_rate_pct_dep = mean(success_rate_pct, na.rm = TRUE))
-
-pairs(dnb_pct_dep[2:6])
-
-distance <- dist(dnb_pct_dep)
-
-mydata.hclust <- hclust(distance)
-plot(mydata.hclust)
-
-```
 
 ## esssai carte
 
@@ -365,16 +603,18 @@ result_map <- left_join(x = map[,-6], y = result)
 
 plot
 
-```{r, echo = TRUE}
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 
 ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
   geom_polygon() +
   coord_map() +
-  scale_fill_gradient(name = "Average sucess  rate") +
+  scale_fill_viridis(name = "Average sucess rate")+
   labs(x = "", 
        y = "", 
-       title = "Average success rate, xxxx-2021") +
-  map_theme  
+       title = "Average success rate, 2006-2021") +
+  map_theme
+  
+
 #for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
 ```
 
@@ -383,3 +623,4 @@ ggplot(result_map, aes(long,lat, group = group, fill = mean)) +
 -   Univariate visualizations
 -   Multivariate visualizations
 -   Summary tables
+
