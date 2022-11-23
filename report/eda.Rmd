@@ -222,7 +222,13 @@ ggplotly(p, tooltip = c("x" ,"y"))
 ###{-}
 
 ### Period 2006-2021 by region {.tabset}
-#### Success rate
+#### Success rate 
+
+```{r}
+y_scale_pct <- scale_y_continuous(limits = range(c(0:100)))
+
+```
+
 
 ```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -235,6 +241,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
             color = region,
             text = region)) + 
         geom_line() +
+        y_scale_pct +
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Success rate") +
@@ -543,9 +550,10 @@ ggplotly(p, tooltip = c("text","text2"))
 ###  {.unnumbered}
 
 ## Establishment_24
+The 
 ```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 g <- list(
-  scope = 'world',
+  scope = 'europe',
   showland = TRUE,
   landcolor = toRGB("grey83"),
   subunitcolor = toRGB("white"),
@@ -556,8 +564,7 @@ g <- list(
   showcountries = TRUE,
   resolution = 50
 )
-
-fig <- plot_geo(establishment_24, lat = ~latitude, lon = ~longitude)
+fig <- plot_geo(establishment_24_fr, lat = ~latitude, lon = ~longitude)
 fig <- fig %>% 
   layout(title = 'Establishment labellised Generation 2024', geo = g) %>% 
   add_markers(text = ~paste(department, establishment, sep = "<br />"),

@@ -161,6 +161,35 @@ establishment_24 <- establishment_24 %>%
     select(region:sport_section, high_school_type, establishment_web:session_ended)
 ```
 
+6.  we can see on the map below, we have establishment from the overseas collectivities (COM) as well French international school. We decided to remove all these establishment as their reality is very different from that experienced by French metropolitan students.
+```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+g <- list(
+  scope = 'world',
+  showland = TRUE,
+  landcolor = toRGB("grey83"),
+  subunitcolor = toRGB("white"),
+  countrycolor = toRGB("white"),
+  showlakes = TRUE,
+  lakecolor = toRGB("white"),
+  showsubunits = TRUE,
+  showcountries = TRUE,
+  resolution = 50
+)
+
+fig <- plot_geo(establishment_24, lat = ~latitude, lon = ~longitude)
+fig <- fig %>% 
+  layout(title = 'Establishment labellised Generation 2024', geo = g) %>% 
+  add_markers(text = ~paste(department, establishment, sep = "<br />"),
+              hoverinfo = "text")
+fig
+```
+
+```{r}
+establishment_24_fr <- establishment_24 %>% 
+  select(-c(postcode:mail,city_school,QPV:SEGPA,establishment_web:ministry, precision_on_localisation)) %>% 
+  dplyr::filter(!academy %in% c("Polynésie Française","Guyane", "Martinique", "Guadeloupe", "La Réunion", "Mayotte", "AEFE"))
+```
+
 We can see the final table *establishment_24* below. 
 
 ```{r}
