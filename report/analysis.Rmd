@@ -31,7 +31,28 @@ plot(mydata.hclust)
 
 ```
 
+plot
 
+```{r, warning=FALSE, out.width='75%', out.height= '75%'}
+
+p <-  ggplot() +
+  geom_polygon(data = result_map, aes(long,lat, 
+                            group = group, 
+                            fill = success_rate, 
+                            text = department_fr)) +
+  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text2= establishment), size = 0.5)+
+  coord_map() +
+  scale_fill_viridis(name = "Average sucess rate")+
+  labs(x = "", 
+       y = "", 
+       title = "Average success rate, 2006-2021") +
+  map_theme
+  
+ggplotly(p, tooltip = c("text2") )
+
+
+#for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
+```
 
 * Answers to the research questions
 * Different methods considered

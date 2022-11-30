@@ -11,11 +11,11 @@ source(here::here("scripts/setup.R"))
 
 ```
 
-# Data Set
+# Data Sets
 
 ## dnb_results
 
-This dataset presents the results of the diplôme national du brevet by school, for schools in metropolitan France and for the overseas departments and regions. This data set contains 139’580 observations.
+This dataset presents the results of the "diplôme national du brevet" by school, for schools in metropolitan France and for the overseas departments and regions. This data set contains 139’580 observations.
 
 ```{r}
 knitr::kable(cbind(
@@ -73,7 +73,7 @@ knitr::kable(cbind(
 
 ## Generation 2024 data set
 
-This data set gathers all schools which have been awarded the "Generation 2024" label. Its aim is to develop bridges between the school world and the sports movement in order to encourage young people to practice physical activity and sport. This data set contains 6’883 observations.
+This data set gathers all schools which have been awarded the "Generation 2024" label.  The objective of this label, developed in view of the Paris 2024 Olympic Games, is to develop bridges between the school world and the sports movement in order to encourage young people to take part in physical activity and sport. This data set contains 6’883 observations.
 
 
 ```{r}
@@ -273,7 +273,7 @@ knitr::kable(cbind(
 [Source of the data set](https://www.data.gouv.fr/fr/datasets/r/356bde9d-18b6-4d8b-b8bb-150cba5fba74)
 
 Loading of the data 
-```{r,  message=FALSE, warning = FALSE}
+```{r, echo=TRUE, message=FALSE, warning = FALSE}
 DNB_par_etablissement <- read_delim(here::here("data/DNB-par-etablissement.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
 Etablissements_labellises_generation_2024 <- read_delim(here::here("data/Etablissements-labellises-generation-2024.csv"),";", escape_double = FALSE, trim_ws = TRUE)
 Hebergement_eleves_etablissements_2d <- read_delim(here::here("data/Hebergement-eleves-etablissements-2d.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
@@ -284,15 +284,7 @@ Covid_sp_dep_7j_cage_scol_2022_10_10_19h02 <- read_delim(here::here("data/Covid-
 
 We have realised that some wrangling are necessary for each data sets. We have established a checklist that we will go through for each data set. We have to :
 
-1.  Translate the column names.
-2.  Make sure that all data are of the right type.
-3.  Make sure that the time reference (year) are all aligned with the exam session.
-4.  Add a column department_fr that with department names matching the ones in ggplot.
-5.  Verify if the data set needs further wrangling.
-
-**Function**
-
-We have to rename all data sets in the same way. Therefore, we created a function. The function has a data frame and a vector as inputs. It checks if the length of the vector is correct, if so it returns a tibble with the column names renamed. Otherwise, the function gives an error message statting that the vector is not the right length. 
+1.  Translate the column names. As we have to rename all data sets in the same way, we have created a function. The function has a data frame and a vector as inputs. It checks if the length of the vector is correct, if so it returns a tibble with the column names renamed. Otherwise, the function gives an error message stating that the vector is not the right length. 
 ```{r, echo = TRUE}
 
 rename_df <- function(df, x){
@@ -305,9 +297,13 @@ rename_df <- function(df, x){
 }
 ```
 
-## dnb_results
+2.  Make sure that all data are of the right type.
+3.  Make sure that the time reference (year) are all aligned with the exam session.
+4.  Add a column department_fr which will be harmonized between all data set in order to join them easily. We have also decided to keep only establishments in mainland France and Corsica. We wanted to focus on this part of France in order to get more comparable results. We note that including the results from all the overseas region would be interesting for further researches.  
+5.  and more. We need to make sure that the data set does not need any further specific wrangling.
 
-This dataset presents the results of the diplôme national du brevet by school, for schools in metropolitan France and for the overseas departments and regions. This data set contains 139'580 observations.
+
+## dnb_results
 
 1.  Translate the column names.
 ```{r, echo = TRUE}
@@ -316,14 +312,14 @@ dnb_colnames <- c("session", "school_id", "school_type", "establishment_name", "
 )
 dnb_results <- rename_df(DNB_par_etablissement, dnb_colnames)
 ```
-2.  success_rate is of the form **,**% we want it as a double of the form **.**
+2.  success_rate is of the form `xx,xx%` we want it as a double of the form `xx.xx`
 ```{r, echo = TRUE}
 
 dnb_results[["success_rate_pct"]] <- as.double(gsub("%","",
                                                gsub(",",".", dnb_results[["success_rate_pct"]])))
 ```
 3.  We need to harmonize the year variables of all the other data sets to match the logic of this one. The year is the year of the exam session (e.g academic period "2020-2021" is represented as 2021)
-4.  We need to add a column department_fr that with department names matching the ones in ggplot.
+4.  We need to add the column `department_fr` and drop the overseas collectivities (COM).
 ```{r, echo = TRUE}
 
 dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-ASCII") %>%
@@ -339,8 +335,11 @@ dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-A
   str_replace_all("Territoire-de-Belfort", "Territoire de Belfort") %>% 
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
 
+dnb_results <- dnb_results %>% 
+dplyr::filter(!department_fr %in% c("Polynesie-Française","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "NA", "-"))
+
 ```
-5.  We want some to know the attribution rate of each mention to simplify the comparison.
+5.  We want some to know the attribution rate of each mention. It is needed in order to do some true comparisons between region without the same number of students.
 ```{r, echo = TRUE}
 dnb_results <- dnb_results %>% 
   mutate(without_pct = admitted_without/admitted*100,
@@ -350,6 +349,12 @@ dnb_results <- dnb_results %>%
          )
 
 ```
+```{r}
+dnb_results <- dnb_results %>% 
+dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "NA", "-"))
+```
+
+
 We can see the final table *dnb_results* below. 
 ```{r}
 #datatable(dnb_results)
@@ -358,8 +363,6 @@ We can see the final table *dnb_results* below.
 
 ## establishment_24
 
-This data set gathers all schools which have been awarded the "Generation 2024" label. Its aim is to develop bridges between the school world and the sports movement in order to encourage young people to practice physical activity and sport. This data set contains 6'883 observations.
-
 1.  Translate the column names.
 ```{r, echo = TRUE}
 est_24_names <- c("region", "academy", "department", "municipality", "establishment", "school_id", "school_type", "education_sector", "postcode", "adress", "adress_2", "mail", "students", "priority_education", "city_school", "QPV", "ULIS", "SEGPA", "sport_section", "agricultural_high_school", "military_high_school", "vocational_high_school", "establishment_web", "SIREN_SIRET", "district", "ministry", "label_start_date", "label_end_date", "y_coordinate", "x_coordinate", "epsg", "precision_on_localisation", "latitude", "longitude", "position", "engaging_30_sport")
@@ -367,7 +370,7 @@ establishment_24 <- rename_df(Etablissements_labellises_generation_2024, est_24_
 
 ```
 2.  No problem for this data set
-3.  We need to add two variables session_started and session_ended. Indeed as the label has a start and an End date we have to trace the first session and the last session where the establishment have the label generation 2024.Most labellisations start and end in January but a few start and end in middle of the year. Exams take place end of June, beginning of July. Therefore, we will consider labellisation done in August and after as done for the next academic year.
+3.  We need to add two variables session_started and session_ended. Indeed as the label has a start and an End date we have to trace the first session and the last session where the establishment have the label generation 2024.Most labellisations start and end in January but a few start and end in middle of the year. Exams take place end of June, beginning of July. Therefore, we will consider labellization done in August and after as done for the next academic year.
 ```{r, echo = TRUE}
 
 establishment_24 <- establishment_24 %>% 
@@ -377,7 +380,7 @@ establishment_24 <- establishment_24 %>%
                                    month(label_end_date) >  7 ~ year(label_end_date)+1)
          )
 ```
-4.  We need to add a column department_fr that with department names matching the ones in ggplot.
+4.  We need to add the column `department_fr`.
 ```{r, echo = TRUE}
 
 establishment_24$department_fr <- stri_trans_general(establishment_24$department, "Latin-ASCII") %>%
@@ -393,16 +396,7 @@ establishment_24$department_fr <- stri_trans_general(establishment_24$department
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
 
 ```
-5.  We can create a high_school_type variable instead of agricultural_high_school, military_high_school, vocational_high_school and drop those variables.
-```{r, echo = TRUE}
-
-establishment_24 <- establishment_24 %>% 
-  mutate(high_school_type = case_when(agricultural_high_school == 1 ~ "agricultural high school",
-                                      military_high_school == 1 ~ "military high school",
-                                      vocational_high_school == 1 ~ "vocational high school")) %>% 
-    select(region:sport_section, high_school_type, establishment_web:session_ended)
-```
-6.  we can see on the map below, we have establishment from the overseas collectivities (COM) as well French international school. We decided to remove all these establishment as their reality is very different from that experienced by French metropolitan students.
+    We can see on the map below, that the data set contains establishments from the overseas collectivities (COM) but from the French international schools as well.
 ```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 g <- list(
   scope = 'world',
@@ -424,20 +418,40 @@ fig <- fig %>%
               hoverinfo = "text")
 fig
 ```
+As previsouly discussed we have decided to keep only data from mainland France. We have to make sure that we also remove the French international schools. We also take this opportunity to remove unused variables.
+```{r, echo=TRUE}
+establishment_24 <- establishment_24 %>% 
+  dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "-")) %>% 
+  dplyr::filter(!department_fr == "NA")#"NA" and "-" makes sure that we have no more International schools. 
 
-```{r}
-establishment_24_fr <- establishment_24 %>% 
-  select(-c(postcode:mail,city_school,QPV:SEGPA,establishment_web:ministry, precision_on_localisation)) %>% 
-  dplyr::filter(!academy %in% c("Polynésie Française","Guyane", "Martinique", "Guadeloupe", "La Réunion", "Mayotte", "AEFE"))
+#establishment_24 has a lot of variables which we will for sure not use
+establishment_24 <- establishment_24 %>% 
+  select(-c(postcode:mail,city_school,QPV:SEGPA,establishment_web:ministry, precision_on_localisation))
+
+
 ```
+5.  We create a high_school_type variable which contains the information of agricultural_high_school, military_high_school, vocational_high_school.
+```{r, echo = TRUE}
+
+establishment_24 <- establishment_24 %>% 
+  mutate(high_school_type = case_when(agricultural_high_school == 1 ~ "agricultural high school",
+                                      military_high_school == 1 ~ "military high school",
+                                      vocational_high_school == 1 ~ "vocational high school")) %>% 
+    select(-c(agricultural_high_school, military_high_school, vocational_high_school))
+```
+6. The "Diplome National du Brevet" is the diploma received at the end of "collège". We have to keep establishments which are "collège" and drop all the rest. 
+```{r}
+establishment_24 <- establishment_24 %>% 
+  dplyr::filter(school_type == "Collège")
+```
+
+
 We can see the final table *establishment_24* below. 
 ```{r}
 #datatable(establishment_24)
 ```
 
 ## student_housing
-
-This dataset records enrolment in secondary schools according to the type of accommodation for pupils: half-board, boarding school etc. This data set contains 32'096 observations.
 
 1.  Translate the column names.
 ```{r, echo = TRUE}
@@ -454,7 +468,7 @@ student_housing <- student_housing %>%
   mutate(session = year_back_to_school + 1) %>% 
     select(year_back_to_school,session, everything()) #here just to order variables
 ```
-4.  We need to add a column department_fr that with department names matching the ones in ggplot.
+4.  We need to add the column department_fr.
 ```{r, echo = TRUE}
 student_housing$department_fr <- stri_trans_general(student_housing$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
@@ -479,8 +493,6 @@ We can see the final table *student_housing* below.
 
 ## single_parent
 
-This data set provides information about the single-parent families in each municipality. The census has been made every five years since 2008. This data set contains 104'986 observations
-
 1.  Translate the column names.
 ```{r, echo = TRUE}
 sg_parent_names <- c("geocode", "municipality", "year","sing_par")
@@ -488,8 +500,6 @@ sg_parent_names <- c("geocode", "municipality", "year","sing_par")
 ```
 
 ## covid_in_schools
-
-This is a time based data set that gives us information on the COVID tests and results carried out by laboratories, hospitals, pharmacists, doctors and nurses. It is updated daily. On the 11th October, the data set contained 543'974 observations.
 
 1.  Translate the column names.
 ```{r, echo = TRUE}
@@ -530,7 +540,7 @@ We will use the ggplot France map for our visualizations
 ```{r, echo = TRUE}
 map <- map_data("france")
 ```
-The region variable is in fact the departments. We rename it to fit what we added in the other data sets.
+The region variable is in fact the departments. We rename it "department_fr" to fit with in the other data sets.
 ```{r, echo = TRUE}
 colnames(map)[5]<- "department_fr"
 
