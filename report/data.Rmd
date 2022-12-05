@@ -272,12 +272,14 @@ knitr::kable(cbind(
 ```
 [Source of the data set](https://www.data.gouv.fr/fr/datasets/r/356bde9d-18b6-4d8b-b8bb-150cba5fba74)
 
-Loading of the data 
+**Loading of the data** 
+All but the single_parent dataset are CSV files with semicolons as separators. The single_parent data set is in excel format, so we have to use read_excel. Then, we use skip because the document includes extra header information rows.
 ```{r, echo=TRUE, message=FALSE, warning = FALSE}
 DNB_par_etablissement <- read_delim(here::here("data/DNB-par-etablissement.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
 Etablissements_labellises_generation_2024 <- read_delim(here::here("data/Etablissements-labellises-generation-2024.csv"),";", escape_double = FALSE, trim_ws = TRUE)
 Hebergement_eleves_etablissements_2d <- read_delim(here::here("data/Hebergement-eleves-etablissements-2d.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
-Covid_sp_dep_7j_cage_scol_2022_10_10_19h02 <- read_delim(here::here("data/Covid-sp-dep-7j-cage-scol-2022-10-10-19h02.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
+insee_rp_hist_xxxx <- read_excel(here::here("data/insee_rp_hist_xxxx.xlsx"), skip = 4)
+covid_sp_dep_heb_cage_scol_2022_11_30_19h01 <- read_delim(here::here("data/covid_sp_dep_heb_cage_scol_2022_11_30_19h01.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 # Data Wrangling
@@ -352,6 +354,24 @@ dnb_results <- dnb_results %>%
 ```{r}
 dnb_results <- dnb_results %>% 
 dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "NA", "-"))
+```
+6. The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize all values to the department level.
+```{r}
+dnb_results_dep <- dnb_results %>% 
+  select(session, department_code, region:TB_pct) %>% 
+  group_by(department_fr, session, region) %>% 
+  summarise(registered = sum(registered),
+            present = sum(present),
+            admitted = sum(admitted),
+            admitted_without = sum(admitted_without),
+            admitted_AB = sum(admitted_AB),
+            admitted_B = sum(admitted_B),
+            admitted_TB = sum(admitted_TB),
+            without_pct = mean(without_pct, na.rm = TRUE),
+            AB_pct = mean(AB_pct, na.rm = TRUE),
+            B_pct = mean(B_pct, na.rm = TRUE),
+            TB_pct = mean(TB_pct, na.rm = TRUE),
+            success_rate_pct = mean(success_rate_pct, na.rm = TRUE))
 ```
 
 
@@ -430,7 +450,7 @@ establishment_24 <- establishment_24 %>%
 
 
 ```
-5.  We create a high_school_type variable which contains the information of agricultural_high_school, military_high_school, vocational_high_school.
+5.  We create a `high_school_type variable` which contains the information of agricultural_high_school, military_high_school, vocational_high_school.
 ```{r, echo = TRUE}
 
 establishment_24 <- establishment_24 %>% 
@@ -461,14 +481,14 @@ student_housing <- rename_df(Hebergement_eleves_etablissements_2d, housing_names
 
 ```
 2.  No Problem for this data set
-3.  We need to create a session variable as year_back_to_school refers to the beginning of the school year and not the exam session.
+3.  We need to create a `session` variable as `year_back_to_school` refers to the beginning of the school year and not the exam session.
 ```{r, echo = TRUE}
 
 student_housing <- student_housing %>% 
   mutate(session = year_back_to_school + 1) %>% 
     select(year_back_to_school,session, everything()) #here just to order variables
 ```
-4.  We need to add the column department_fr.
+4.  We need to add the column `department_fr`.
 ```{r, echo = TRUE}
 student_housing$department_fr <- stri_trans_general(student_housing$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
@@ -494,18 +514,39 @@ We can see the final table *student_housing* below.
 ## single_parent
 
 1.  Translate the column names.
-```{r, echo = TRUE}
-sg_parent_names <- c("geocode", "municipality", "year","sing_par")
-
+```{r , echo=TRUE}
+sg_parent_names <- c("geocode", "department", "session","sing_par")
+single_parent <- rename_df(insee_rp_hist_xxxx, sg_parent_names)
 ```
+2. We have to change the scalar of the "session" and "single_par" variables into doubles.
+```{r , echo=TRUE}
+single_parent[["session"]]<- as.double(single_parent[["session"]])
+single_parent[["sing_par"]]<- as.double(single_parent[["sing_par"]])
+```
+3. The session variable is already implemented in this data set.
+4. We need to add the column `department_fr`.
+```{r , echo=TRUE}
+single_parent$department_fr <- stri_trans_general(single_parent$department, "Latin-ASCII") %>%
+  str_to_title(.) %>%
+  gsub("Du", "du", .) %>%
+  gsub("De", "de", .) %>%
+  gsub("D'", "D", .) %>%
+  gsub("Et", "et", .) %>%
+  gsub(" ", "-", .) %>%
+  str_replace_all("Corse-du-Sud", "Corse du Sud") %>%
+  str_replace_all("deux-Sevres", "Deux-Sevres") %>%
+  str_replace_all("Alpes-de-Hte-Provence", "Alpes-de-Haute-Provence") %>%      
+  str_replace_all("Territoire-de-Belfort", "Territoire de Belfort") %>%
+  str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
+```
+5.  No need for further data wrangling for this data set
 
 ## covid_in_schools
 
 1.  Translate the column names.
 ```{r, echo = TRUE}
-#1
 covide_names <- c("department_code", "test_week", "educational_level", "age_group", "pop", "positive", "tested", "incidence_rate", "positivity_rate", "screening_rate")
-covid_in_schools <- rename_df(Covid_sp_dep_7j_cage_scol_2022_10_10_19h02,covide_names)
+covid_in_schools <- rename_df(covid_sp_dep_heb_cage_scol_2022_11_30_19h01,covide_names)
 ```
 2.  test_week will be treated in (3.). positive, incidence_rate and positivity_rate need to be doubles
 ```{r, echo = TRUE}
@@ -515,19 +556,36 @@ covid_in_schools[["positivity_rate"]] <- as.double(gsub(",",".", covid_in_school
 ```
 3.  We need to create two new variables. The first will be the date categorizing each week. We chose the first date (Monday). The test for a session will be those from August to July of the next year. As our argument will be set on the month, we might have some test done the first days of august count towards the "wrong" session. The number of Covid cases in August are relatively low compared to the rest of the year and it represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
 ```{r, echo = TRUE}
-covid_in_schools <- covid_in_schools %>% 
-  mutate(test_date = ymd(substr(test_week,1,10)),
-         session = case_when(month(test_date) <= 7 ~ year(test_date),
+covid_in_schools <- covid_in_schools %>%
+  mutate(test_date = case_when (as.numeric(substr(test_week, 1,4))== 2020
+                                ~ lubridate::ymd('2019-12-30') + lubridate::weeks(as.numeric(substr(test_week, 7,8))),
+                                as.numeric(substr(test_week, 1,4))== 2021
+                                ~ lubridate::ymd('2021-01-04') + lubridate::weeks(as.numeric(substr(test_week, 7,8))),
+                                as.numeric(substr(test_week, 1,4))== 2022
+                                ~ lubridate::ymd('2022-01-03') + lubridate::weeks(as.numeric(substr(test_week, 7,8)))
+  ))
+                               
+covid_in_schools <- covid_in_schools %>%
+  mutate(session = case_when(month(test_date) <= 7 ~ year(test_date),
                              month(test_date) >  7 ~ year(test_date)+1))
 ```
-4.  Only department code. We need to input the names of the departments.
+4.  Only department code. We need to input the column `department_fr` and `region`. We use the `department_fr` and `region` variables from dnb_results. We join the two datasets by `department_code`. To do this, we first need to match the two by removing the first character of the `department_code` from dnb_results.
 ```{r, echo = TRUE}
+reg_department <- dnb_results %>%
+  select(c("department_code", "department_fr", "region")) %>%
+  unique()
+
+reg_department$department_code <- substring(reg_department$department_code, 2)
+  
+covid_in_schools <- right_join(x = covid_in_schools, y = reg_department, by = "department_code")
+```
+5.  We are only interested in the age group of 11 to 15. We use filter to keep only the students passing the DNB. 
+```{r , echo=TRUE}
+covid_in_schools <- covid_in_schools %>%
+  filter(educational_level == "[11-15)")
 
 ```
-5.  To simplify the dataset, we need to drop all but 11-15 educational_level.
-```{r, echo = TRUE}
 
-```
 We can see the final table *covid_in_schools* below. 
 ```{r}
 #datatable(covid_in_schools)

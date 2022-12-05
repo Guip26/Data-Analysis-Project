@@ -658,33 +658,11 @@ p <- ggplot() +
 ggplotly(p, tooltip = c("text2") )
 ```
 
-The
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
-g <- list(
-  scope = 'europe',
-  showland = TRUE,
-  landcolor = toRGB("grey83"),
-  subunitcolor = toRGB("white"),
-  countrycolor = toRGB("white"),
-  showlakes = TRUE,
-  lakecolor = toRGB("white"),
-  showsubunits = TRUE,
-  showcountries = TRUE,
-  resolution = 50
-)
-fig <- plot_geo(establishment_24, lat = ~latitude, lon = ~longitude)
-fig <- fig %>% 
-  layout(title = 'Establishment labellised Generation 2024', geo = g) %>% 
-  add_markers(text = ~paste(department, establishment, sep = "<br />"),
-              hoverinfo = "text")
-fig
-```
-
-### esssai carte
+## single_parent
+The first visualisation we wanted to do was a barplot that would show the evolution of the total number of single-parent families in France from 2007 to 2008. To do this, we had to isolate, in a dataset called sp_, the sing_par and session variables, then summarized the number of single-parents with “sum”. In order to remove the years that did not interest us, we had to use the filter function. We then were able to use geom_bar.
 
 Creation of the map theme
-
 ```{r, echo = TRUE}
 
 map_theme <- theme(title=element_text(),
@@ -698,46 +676,296 @@ map_theme <- theme(title=element_text(),
                    panel.background= element_blank()) 
 ```
 
-Creation of the dataset used for the map
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+sp1_ <- single_parent %>%
+  select(c("session", "sing_par")) %>%
+  group_by(session)%>%
+  summarise (sing_par = sum(sing_par, na.rm = TRUE))
 
-```{r, echo = TRUE}
+barplot_pos <- ggplot(data = sp1_, aes(x = session, 
+                                       y = sing_par, 
+                                       fill = session))+
+  geom_col(stat = "identity" )+
+  scale_x_discrete(labels=as.character(sp1_$session), breaks= sp1_$session)+
+  scale_fill_gradientn(colors = viridis(6))+
+  #scale_fill_viridis() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, color = "black"))+
+  theme_ipsum()
+  #geom_text(aes(label=sing_par), vjust = 1.6, color = "white", size = 2)
 
-result <- dnb_results %>% 
-  select(department_fr, success_rate_pct) %>% 
-  group_by(department_fr) %>% 
-  summarise(success_rate = mean(success_rate_pct))
+barplot_pos
+```
+Based on the barplot, we can make an overall analysis of the evolution of single-parent families in France over the years. Although we are missing several years, we can clearly see that the number of single-parent families has continued to increase since 2007. In fact, single-parent families numbered 2,427,110 in 2007, whereas in 2018, they were numbering 3,031,823. In just over 10 years, there has been a 20% increase.
 
+#### Single-parent families by departments, 2007
+We need to create a data set needed to create the maps.We join the single_parent and map data sets using `department_fr`.  
+```{r, echo=TRUE, warning=FALSE}
+jmap_sp<- left_join(x = map[,-6], y = single_parent, by = "department_fr")
 ```
 
-Join the map from ggplot and our new dataset
 
-```{r, echo = TRUE}
-
-result_map <- left_join(x = map[,-6], y = result)
-```
-
-plot
-
-```{r, warning=FALSE, out.width='75%', out.height= '75%'}
-
-p <-  ggplot() +
-  geom_polygon(data = result_map, aes(long,lat, 
-                            group = group, 
-                            fill = success_rate, 
-                            text = department_fr)) +
-  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text2= establishment), size = 0.5)+
-  coord_map() +
-  scale_fill_viridis(name = "Average sucess rate")+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <-jmap_sp %>% 
+  filter(session == 2007) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= sing_par), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
   labs(x = "", 
        y = "", 
-       title = "Average success rate, 2006-2021") +
+       title = "Single parent families in 2007")+
   map_theme
-  
-ggplotly(p, tooltip = c("text2") )
 
+ggplotly(p, tooltip = c("text","fill"))
 
-#for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
 ```
+
+
+```{r, echo=TRUE}
+sing_dnb <- left_join(x = single_parent, y = dnb_results_dep, by = c("department_fr", "session"))
+```
+
+```{r, echo=TRUE}
+sing_dnb <- sing_dnb %>% 
+  mutate(single_parent_per_student_admitted = sing_par/admitted)
+#Join with the map data set for the mapping. 
+sing_dnb_map <- left_join(x = map[,-6], y = sing_dnb, by = "department_fr")
+```
+
+####  Single parent families per student admitted {.tabset}
+##### 2007
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2007) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2007")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2008
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2008) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2008")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2012
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2012) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2012")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2013
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2013) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2013")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+
+##### 2017
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2017) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2017")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+
+##### 2018
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-sing_dnb_map %>% 
+  filter(session == 2018) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
+  scale_fill_viridis(name = "Number of single parent families") +
+  labs(x = "", 
+       y = "", 
+       title = "Single parent families per student admitted in 2018")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+#### {.unnumbered}
+
+##  covid_in_schools
+
+First, we wanted to get an overview of COVID positive cases in France over the years. So we used ggplot with test_date as the x-axis and positive for the y-axis.
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- covid_in_schools %>% 
+  select(positive, test_date) %>% 
+  group_by(test_date) %>% 
+  summarise(positive = sum(positive)) %>% 
+  ggplot( mapping = aes(x= test_date, y = positive)) +
+  geom_line() +
+  labs(title = "French Covid-19 cases from the age group 11 to 15 years old (2020-2022)", x = "Date", y = "Number of cases")+
+  theme_ipsum()
+
+ggplotly(p, tooltip = c("x","y"))
+```
+
+
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- covid_in_schools %>%
+  select(c("department_code", "positive", "session", "region", "department_fr", "test_date")) %>%
+  group_by(region, test_date) %>%
+  summarise(positive = sum(positive)) %>% 
+  ggplot() +
+  geom_line(mapping = aes(x = test_date, y = positive, color = region))+
+   scale_color_viridis(discrete = TRUE) +
+    ggtitle("Covid-19 cases from the age group 11 to 15 years old by region (2020-2022)") +
+    theme_ipsum()
+
+ggplotly(p, tooltip = c("x","y", "color"))
+
+
+```
+
+####  Incidence rate average {.tabset}
+
+```{r, echo=TRUE}
+covidpos_dep <- covid_in_schools %>% 
+  select(c("department_code", "incidence_rate", "session", "department_fr" )) %>% 
+  group_by(department_fr, session) %>%
+  summarise(incidence_rate = mean(incidence_rate, na.rm = TRUE))
+
+covidpos_dep <- left_join(x = map[,-6], y = covidpos_dep)
+
+```
+
+##### 2020
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- covidpos_dep %>% 
+  filter(session == 2020) %>% 
+  ggplot( aes(x= long, y= lat, group=group, text = department_fr)) +
+  geom_polygon(aes(fill= incidence_rate), color = "black") +
+  coord_map()+
+  scale_fill_viridis(name = "Incidence rate average in 2020")+
+  map_theme
+
+ggplotly(p)
+```
+##### 2021
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- covidpos_dep %>% 
+  filter(session == 2021) %>% 
+  ggplot( aes(x= long, y= lat, group=group, text = department_fr)) +
+  geom_polygon(aes(fill= incidence_rate), color = "black") +
+  coord_map()+
+  scale_fill_viridis(name = "Incidence rate average in 2021")+
+  map_theme
+
+ggplotly(p)
+```
+##### 2022
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- covidpos_dep %>% 
+  filter(session == 2022) %>% 
+  ggplot( aes(x= long, y= lat, group=group, text = department_fr)) +
+  geom_polygon(aes(fill= incidence_rate), color = "black") +
+  coord_map()+
+  scale_fill_viridis(name = "Incidence rate average in 2022")+
+  map_theme
+
+ggplotly(p)
+```
+##### 2023
+```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- covidpos_dep %>% 
+  filter(session == 2023) %>% 
+  ggplot( aes(x= long, y= lat, group=group, text = department_fr)) +
+  geom_polygon(aes(fill= incidence_rate), color = "black") +
+  coord_map()+
+  scale_fill_viridis(name = "Incidence rate average in 2023")+
+  map_theme
+
+ggplotly(p)
+```
+
+
+#### {.unnumbered}
+
 
 -   Mapping out the underlying structure
 -   Identifying the most important variables

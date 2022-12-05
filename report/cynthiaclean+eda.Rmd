@@ -4,9 +4,9 @@
 
 1. The single_parent dataset is in excel format, so we have to use read_excel. Then, we use skip because the document includes extra header information rows. We reuse the rename_df function that we created before to name the columns.
 ```{r , echo=TRUE}
-single_parent <- read_excel(here::here("data/insee_rp_hist_xxxx.xlsx", skip = 4))
+insee_rp_hist_xxxx <- read_excel(here::here("data/insee_rp_hist_xxxx.xlsx"), skip = 4)
 sg_parent_names <- c("geocode", "department", "session","sing_par")
-single_parent <- rename_df(insee_rp_hist_xxxx_4_dep, sg_parent_names)
+single_parent <- rename_df(insee_rp_hist_xxxx, sg_parent_names)
 ```
 2. We have to change the scalar of the "session" and "single_par" variables into doubles.
 ```{r , echo=TRUE}
@@ -27,8 +27,11 @@ single_parent$department <- str_to_upper(single_parent$department)%>%
 
 1. Translate the colum names
 ```{r , echo=TRUE}
+covid_sp_dep_heb_cage_scol_2022_11_30_19h01 <- read_delim(here::here("data/covid_sp_dep_heb_cage_scol_2022_11_30_19h01.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
 covide_names <- c("department_code", "test_week", "educational_level", "age_group", "pop", "positive", "tested", "incidence_rate", "positivity_rate", "screening_rate")
-covid_in_schools <- rename_df(Covid_sp_dep_7j_cage_scol_2022_10_10_19h02,covide_names)
+covid_in_schools <- rename_df(covid_sp_dep_heb_cage_scol_2022_11_30_19h01,covide_names)
 ```
 2. test_week will be treated in (3.). Therefore, positive, incidence_rate and positivity_rate need to be doubles
 ```{r , echo=TRUE}
@@ -36,10 +39,10 @@ covid_in_schools[["positive"]] <- as.double(gsub(",",".", covid_in_schools[["pos
 covid_in_schools[["incidence_rate"]] <- as.double(gsub(",",".", covid_in_schools[["incidence_rate"]]))
 covid_in_schools[["positivity_rate"]] <- as.double(gsub(",",".", covid_in_schools[["positivity_rate"]]))
 ```
-3.We need to create two new variables: the first will be the date categorizing each week called test_date. We choose the first date (Monday). Also, a session column is necessary to constitute the academic school years. Dates with months between January and July will be considered the previous year (for example, January 11, 2021 is part of the 2020 session). The number of Covid cases in August is relatively low compared to the rest of the year and represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
+3.We need to create two new variables: the first will be the date categorizing each week called test_date. We choose the first date (Monday). For this, we use the `test_week` variable and added the nu  Also, a session column is necessary to constitute the academic school years. Dates with months between January and July will be considered the previous year (for example, January 11, 2021 is part of the 2020 session). The number of Covid cases in August is relatively low compared to the rest of the year and represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
 ```{r , echo=TRUE}
 covid_in_schools <- covid_in_schools %>%
-  mutate(test_date = case_when( as.numeric(substr(test_week, 1,4))== 2020
+  mutate(test_date = case_when (as.numeric(substr(test_week, 1,4))== 2020
                                 ~ lubridate::ymd('2019-12-30') + lubridate::weeks(as.numeric(substr(test_week, 7,8))),
                                 as.numeric(substr(test_week, 1,4))== 2021
                                 ~ lubridate::ymd('2021-01-04') + lubridate::weeks(as.numeric(substr(test_week, 7,8))),
@@ -91,19 +94,18 @@ dnb_results$department_fr <- stri_trans_general(dnb_results$department, "Latin-A
   str_replace_all("Territoire-de-Belfort", "Territoire de Belfort") %>%
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
  
-singpar_dnb <- left_join(x = dnb_results, y = single_parent, by =c("session","department_fr"))
+singpar_dnb <- left_join( x = single_parent, y = dnb_results, by =c("session","department_fr"))
 singpar_dnb
 ```
 
 The first visualisation we wanted to do was a barplot that would show the evolution of the total number of single-parent families in France from 2007 to 2008. To do this, we had to isolate, in a dataset called sp_, the sing_par and session variables, then summarized the number of single-parents with “sum”. In order to remove the years that did not interest us, we had to use the filter function. We then were able to use geom_bar.
 ```{r , echo=TRUE}
-sp_ <- singpar_dnb %>%
+sp1_ <- singpar_dnb %>%
   select(c("session", "sing_par")) %>%
   group_by(session)%>%
-  summarise (sing_par = sum(sing_par, na.rm = TRUE))%>%
-  filter(!row_number()%in% c(1,4,5,6,9,10,11,14,15,16))
+  summarise (sing_par = sum(sing_par, na.rm = TRUE))
 
-barplot_pos <- ggplot(data = sp_, aes(x=session, y= sing_par))+
+barplot_pos <- ggplot(data = sp1_, aes(x=session, y= sing_par))+
   geom_bar(stat = "identity", fill="steelblue")+
   scale_x_continuous(labels=as.character(sp1_$session), breaks= sp1_$session)+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+

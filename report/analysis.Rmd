@@ -31,6 +31,25 @@ plot(mydata.hclust)
 
 ```
 
+
+Creation of the dataset used for the map
+
+```{r, echo = TRUE}
+
+result <- dnb_results %>% 
+  select(department_fr, success_rate_pct) %>% 
+  group_by(department_fr) %>% 
+  summarise(success_rate = mean(success_rate_pct, na.rm = TRUE))
+
+```
+
+Join the map from ggplot and our new dataset
+
+```{r, echo = TRUE}
+
+result_map <- left_join(x = map[,-6], y = result)
+```
+
 plot
 
 ```{r, warning=FALSE, out.width='75%', out.height= '75%'}
@@ -40,7 +59,7 @@ p <-  ggplot() +
                             group = group, 
                             fill = success_rate, 
                             text = department_fr)) +
-  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text2= establishment), size = 0.5)+
+  geom_point(data = establishment_24, aes(x = longitude, y = latitude, text2= establishment), size = 0.5)+
   coord_map() +
   scale_fill_viridis(name = "Average sucess rate")+
   labs(x = "", 
