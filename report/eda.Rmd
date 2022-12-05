@@ -10,8 +10,11 @@ To explore this data set we have decided to start on a national level to analyse
 
 ### National analysis
 
+**Talk about the two graph (e.g. number of students growing, what is the number of students, pct growth, ... ). Mention that the shift at year 2017 will be analysed in the analysis.**
+
 ```{r, echo=TRUE}
-France_results <- dnb_results %>% #select(session,registered, present, contains("admitted")) %>% 
+France_results <- dnb_results %>% 
+  #select(session,registered, present, contains("admitted")) %>% 
   group_by(session) %>% 
   summarise(registered = sum(registered),
             present = sum(present),
@@ -37,6 +40,7 @@ France_results <- dnb_results %>% #select(session,registered, present, contains(
 ```
 
 The graph below was made by first grouping data by `session`. A `sum` was then applied to summarize the variables.
+
 ```{r, echo = TRUE, warning = FALSE, out.width='100%', out.height= '50%'}
 
 p <- France_results %>% 
@@ -51,13 +55,11 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-We can notice that the 
-
-
+We can notice that the
 
 National DNB statistics (rate)
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- France_results %>% 
   ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
@@ -75,7 +77,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 Success rate
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
   select(success_rate_pct, region, department) %>% 
@@ -97,12 +99,13 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-
-
 #### Number of students per result and region during the period 2006-2021 {.tabset}
+
+**One description for all of what we see and highlight differences (e.g. Bretagne has higher proportion of students with mentions than no mention).**
+
 ##### Number of admitted by region
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
  select(admitted, region) %>% 
@@ -126,7 +129,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ##### Admitted with zero mention
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
  select(admitted_without, region) %>% 
@@ -148,10 +151,9 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-
 ##### Admitted with mention AB
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
  select(admitted_AB, region) %>% 
@@ -173,10 +175,9 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-
 ##### Admitted with mention B
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
  select(admitted_B, region) %>% 
@@ -198,10 +199,9 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-
 ##### Admitted with mention TB
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_results %>% 
  select(admitted_TB, region) %>% 
@@ -226,15 +226,17 @@ ggplotly(p, tooltip = c("x" ,"y"))
 ####{-}
 
 #### Period 2006-2021 by region {.tabset}
-##### Success rate 
 
-```{r}
+**One description for all of what we see and highlight differences (e.g. Bretagne in B and zero, zero and AB decreasing and B and TB increasing)**
+
+##### Success rate
+
+```{r, echo=TRUE}
 y_scale_pct <- scale_y_continuous(limits = range(c(0:100)))
 
 ```
 
-
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
  p <- dnb_results %>% 
  select(success_rate_pct, region, session) %>% 
@@ -260,7 +262,7 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ##### Admitted with zero mention
 
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
  p <- dnb_results %>% 
  select(without_pct, region, session) %>% 
@@ -284,7 +286,8 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
 ```
 
 ##### Admitted with mention AB
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
  p <- dnb_results %>% 
  select(AB_pct, region, session) %>% 
@@ -308,7 +311,8 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
 ```
 
 ##### Admitted with mention B
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
  p <- dnb_results %>% 
  select(B_pct, region, session) %>% 
@@ -332,7 +336,8 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
 ```
 
 ##### Admitted with mention TB
-```{r, warning=FALSE, out.width='100%', out.height= '50%'}
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
  p <- dnb_results %>% 
  select(TB_pct, region, session) %>% 
@@ -358,9 +363,10 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
 ####{-}
 
 ### Departmental Analysis
+
 #### Box plot Analysis per department {.tabset}
 
-```{r}
+```{r, echo=TRUE}
 
 dnb_pct_dep <- dnb_results %>%
   group_by(department, session) %>% 
@@ -372,9 +378,11 @@ dnb_pct_dep <- dnb_results %>%
 datatable(dnb_pct_dep)
 ```
 
+**Small descritption for each and one analysis encompassing them all. (e.g mention that confidence interval is small or big, and increasing or decreasing)**
+
 ##### success_rate_pct
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -395,7 +403,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ##### without_pct
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -418,7 +426,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ##### B_pct
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -440,7 +448,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ##### AB_pct
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -462,7 +470,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ##### TB_pct
 
-```{r, warning = FALSE, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- dnb_pct_dep %>% 
   ggplot(aes(x = session, 
@@ -487,10 +495,13 @@ ggplotly(p, tooltip = c("text","text2"))
 
 #### Box plot Analysis of at the Department level {.tabset}
 
-##### Paris 2020
-First analysis of the best performing highest rate of TB -> Paris 2020
+**Analyse first differences between 2020 and 2006 and then talk about differences between paris and eure et loir**
 
-```{r, out.width='100%', out.height= '50%'}
+##### Paris 2020
+
+First analysis of the best performing highest rate of TB -\> Paris 2020
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Paris <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -520,11 +531,11 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
-
 ##### Paris 2006
+
 First analysis of the best performing highest rate of TB -> Paris 2020
 
-```{r, out.width='100%', out.height= '50%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Paris <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -554,10 +565,11 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
+##### Eure et Loir 2020 {.unnumbered}
 
-##### Eure et Loir 2020 
 Lowest performing department in TB rate and "best" in zero mention rate -> Guyane 2006
-```{r, out.width='100%', out.height= '50%'}
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Eure <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -585,9 +597,11 @@ Eure$Mention_type <- factor(Eure$Mention_type, levels = c("success_rate_pct","wi
 ggplotly(p, tooltip = c("text","text2"))
 ```
 
-##### Eure et Loir 2006 
-Lowest performing department in TB rate and "best" in zero mention rate -> Guyane 2006
-```{r, out.width='100%', out.height= '50%'}
+##### Eure et Loir 2006 {.unnumbered}
+
+Lowest performing department in TB rate and "best" in zero mention rate -\> Guyane 2006
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Eure <- dnb_results %>%
   select(school_id,establishment_name,department,session, contains("pct")) %>% 
@@ -618,7 +632,34 @@ ggplotly(p, tooltip = c("text","text2"))
 ####  {.unnumbered}
 
 ## Establishment_24
-The 
+
+```{r, echo = TRUE}
+
+map_theme <- theme(title=element_text(),
+                   plot.title=element_text(margin=margin(20,20,20,20), size=18, hjust = 0.5),
+                   axis.text.x=element_blank(),
+                   axis.text.y=element_blank(),
+                   axis.ticks=element_blank(),
+                   axis.title.x=element_blank(),
+                   axis.title.y=element_blank(),
+                   panel.grid.major= element_blank(), 
+                   panel.background= element_blank()) 
+
+p <- ggplot() +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") +
+  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text2= establishment), size = 0.5)+
+  coord_map() +
+  scale_fill_viridis(name = "Average sucess rate")+
+  labs(x = "", 
+       y = "", 
+       title = "Average success rate, 2006-2021") +
+  map_theme
+
+ggplotly(p, tooltip = c("text2") )
+```
+
+The
+
 ```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 g <- list(
   scope = 'europe',
@@ -639,7 +680,6 @@ fig <- fig %>%
               hoverinfo = "text")
 fig
 ```
-
 
 ### esssai carte
 
@@ -704,4 +744,3 @@ ggplotly(p, tooltip = c("text2") )
 -   Univariate visualizations
 -   Multivariate visualizations
 -   Summary tables
-
