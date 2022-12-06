@@ -659,22 +659,241 @@ ggplotly(p, tooltip = c("text2") )
 ```
 
 
+
+
+####  New establishment 2024 labellization per department and year {.tabset}
+
+```{r, echo=TRUE}
+establishment_24_dep_map <- left_join(x = map[,-6], y = establishment_24_dep, by = "department_fr")
+```
+
+##### 2017
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2017) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2017")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2018
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2018) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2018")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2019
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2019) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2019")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2020
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2020) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2020")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2021
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2021) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2021")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+##### 2022
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+
+p <-establishment_24_dep_map  %>% 
+  filter(session_started == 2022) %>%
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= establishment), color = "black") +
+  scale_fill_viridis(name = "Number of establishment") +
+  labs(x = "", 
+       y = "", 
+       title = " New establishment 2024 labellization in 2022")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+```
+
+
+#### {.unnumbered}
+
+## student_housing
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- student_housing %>% 
+  select(session, external_students_secondary_education, half_boarders_students_secondary_education, boarding_students_secondary_education) %>% 
+  group_by(session) %>% 
+  summarise(external_students_secondary_education = sum(external_students_secondary_education, na.rm = TRUE),
+            half_boarders_students_secondary_education = sum(half_boarders_students_secondary_education, na.rm = TRUE), 
+            boarding_students_secondary_education = sum(boarding_students_secondary_education, na.rm = TRUE)) %>% 
+  gather("Housing_option", "students", 2:4) %>%  
+  ggplot(aes(x=session, 
+              y=students,
+              fill=Housing_option)) +
+    geom_bar(stat="identity", position=position_dodge())+
+    ggtitle("Students per housing option in France")+
+    xlab("year")+
+    ylab("Students")+
+    scale_fill_viridis(discrete = TRUE)+
+    theme_ipsum()
+
+ggplotly(p, tooltip = "y")
+```
+
+####  Housing option rate in secondary education per department {.tabset}
+
+##### external students
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- housing_dep %>% 
+  ggplot(aes(x = as.factor(session), 
+             y = external_students_rate, 
+             group = session, 
+             fill = session, 
+             text = department_fr,
+             text2 = external_students_rate)) +
+  geom_boxplot()+
+  geom_jitter(width = 0.25, alpha = 0.5)+ 
+  scale_fill_viridis()+
+  guides(fill = "none")+
+  labs( x= "",
+        y = "Rate of external students in %",
+        title ="Rate of external students of each Department by session")+
+  theme_ipsum()
+
+ggplotly(p, tooltip = c("text","text2"))
+
+```
+
+
+##### half-boarders students
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- housing_dep %>% 
+  ggplot(aes(x = as.factor(session), 
+             y = half_boarders_students_rate, 
+             group = session, 
+             fill = session, 
+             text = department_fr,
+             text2 = half_boarders_students_rate)) +
+  geom_boxplot()+
+  geom_jitter(width = 0.25, alpha = 0.5)+ 
+  scale_fill_viridis()+
+  guides(fill = "none")+
+  labs( x= "",
+        y = "Rate of half-boarders students in %",
+        title ="Rate of half-boarders  students of each Department by session")+
+  theme_ipsum()
+
+ggplotly(p, tooltip = c("text","text2"))
+
+```
+
+
+##### boarding students
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+p <- housing_dep %>% 
+  ggplot(aes(x = as.factor(session), 
+             y = boarding_students_rate, 
+             group = session, 
+             fill = session, 
+             text = department_fr,
+             text2 = boarding_students_rate)) +
+  geom_boxplot()+
+  geom_jitter(width = 0.25, alpha = 0.5)+ 
+  scale_fill_viridis()+
+  guides(fill = "none")+
+  labs( x= "",
+        y = "Rate of boarding students in %",
+        title ="Rate of boarding students of each Department by session")+
+  theme_ipsum()
+
+ggplotly(p, tooltip = c("text","text2"))
+
+```
+#### {.unnumbered}
+
 ## single_parent
 The first visualisation we wanted to do was a barplot that would show the evolution of the total number of single-parent families in France from 2007 to 2008. To do this, we had to isolate, in a dataset called sp_, the sing_par and session variables, then summarized the number of single-parents with “sum”. In order to remove the years that did not interest us, we had to use the filter function. We then were able to use geom_bar.
-
-Creation of the map theme
-```{r, echo = TRUE}
-
-map_theme <- theme(title=element_text(),
-                   plot.title=element_text(margin=margin(20,20,20,20), size=18, hjust = 0.5),
-                   axis.text.x=element_blank(),
-                   axis.text.y=element_blank(),
-                   axis.ticks=element_blank(),
-                   axis.title.x=element_blank(),
-                   axis.title.y=element_blank(),
-                   panel.grid.major= element_blank(), 
-                   panel.background= element_blank()) 
-```
 
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 sp1_ <- single_parent %>%
@@ -682,16 +901,15 @@ sp1_ <- single_parent %>%
   group_by(session)%>%
   summarise (sing_par = sum(sing_par, na.rm = TRUE))
 
-barplot_pos <- ggplot(data = sp1_, aes(x = session, 
+sp1_$session <- as.factor(sp1_$session)
+
+barplot_pos <- ggplot(data = sp1_, aes(x = as.factor(session), 
                                        y = sing_par, 
                                        fill = session))+
   geom_col(stat = "identity" )+
   scale_x_discrete(labels=as.character(sp1_$session), breaks= sp1_$session)+
-  scale_fill_gradientn(colors = viridis(6))+
-  #scale_fill_viridis() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, color = "black"))+
+  scale_fill_viridis(discrete = TRUE) +
   theme_ipsum()
-  #geom_text(aes(label=sing_par), vjust = 1.6, color = "white", size = 2)
 
 barplot_pos
 ```
@@ -898,7 +1116,7 @@ ggplotly(p, tooltip = c("x","y", "color"))
 
 ```
 
-####  Incidence rate average {.tabset}
+####  Incidence rate average per session {.tabset}
 
 ```{r, echo=TRUE}
 covidpos_dep <- covid_in_schools %>% 

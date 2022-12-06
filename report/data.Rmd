@@ -168,7 +168,7 @@ This dataset records enrolment in secondary schools according to the type of acc
 knitr::kable(cbind(
   c(
     '**year_back_to_school**',
-    '**Academic_region**',
+    '**region**',
     '**academy**',
     '**department **',
     '**municipality**',
@@ -341,7 +341,7 @@ dnb_results <- dnb_results %>%
 dplyr::filter(!department_fr %in% c("Polynesie-Française","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "NA", "-"))
 
 ```
-5.  We want some to know the attribution rate of each mention. It is needed in order to do some true comparisons between region without the same number of students.
+5.  We want to know the attribution rate of each mention. It is needed in order to do some true comparisons between region without the same number of students.
 ```{r, echo = TRUE}
 dnb_results <- dnb_results %>% 
   mutate(without_pct = admitted_without/admitted*100,
@@ -464,6 +464,13 @@ establishment_24 <- establishment_24 %>%
 establishment_24 <- establishment_24 %>% 
   dplyr::filter(school_type == "Collège")
 ```
+7. The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize by counting the number of establishment created each session by department. The end of the label period is not of interest for us as the first end date is on the 9.01.2021 which is categorised as session 2022 and we have results for dnb up until session 2021. 
+```{r}
+establishment_24_dep <- establishment_24 %>% 
+  select(region, department_fr, session_started) %>% 
+  group_by(department_fr, session_started) %>% 
+  summarise(establishment = n())
+```
 
 
 We can see the final table *establishment_24* below. 
@@ -476,7 +483,7 @@ We can see the final table *establishment_24* below.
 1.  Translate the column names.
 ```{r, echo = TRUE}
 
-housing_names <- c("year_back_to_school", "Academic_region", "academy", "department", "municipality", "school_id", "establishment_main_name", "establishment_name", "school_type", "education_sector", "students_secondary_education", "students_higher_education", "external_students_secondary_education", "half_boarders_students_secondary_education", "boarding_students_secondary_education", "external_students_higher_education", "half_board_students_higher_education", "boarding_students_higher_education")
+housing_names <- c("year_back_to_school", "region", "academy", "department", "municipality", "school_id", "establishment_main_name", "establishment_name", "school_type", "education_sector", "students_secondary_education", "students_higher_education", "external_students_secondary_education", "half_boarders_students_secondary_education", "boarding_students_secondary_education", "external_students_higher_education", "half_board_students_higher_education", "boarding_students_higher_education")
 student_housing <- rename_df(Hebergement_eleves_etablissements_2d, housing_names)
 
 ```
@@ -503,8 +510,39 @@ student_housing$department_fr <- stri_trans_general(student_housing$department, 
   str_replace_all("Territoire-de-Belfort", "Territoire de Belfort") %>% 
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
 
+student_housing <- student_housing %>% 
+  dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "-")) %>% 
+  dplyr::filter(!department_fr == "NA")
+
 ```
-5.  No need for further data wrangling for this data set
+5.  We are not interested by students for higher education and therefore can delete their variables. 
+```{r}
+student_housing <- student_housing %>% 
+  select(-c(contains("higher")))
+```
+6.  We want to know the rate of each housing offering. It is needed in order to do some true comparisons between region without the same number of students.
+
+```{r}
+student_housing <- student_housing %>% 
+  mutate(external_students_rate = external_students_secondary_education/students_secondary_education*100, 
+         half_boarders_students_rate = half_boarders_students_secondary_education/students_secondary_education*100,
+         boarding_students_rate = boarding_students_secondary_education/students_secondary_education*100)
+```
+7.  The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize all values to the department level.
+```{r}
+housing_dep <- student_housing %>% 
+  select(session, region, students_secondary_education:boarding_students_rate) %>% 
+  group_by(session, department_fr) %>% 
+  summarise(external_students_secondary_education = sum(external_students_secondary_education, na.rm = TRUE),
+            half_boarders_students_secondary_education = sum(half_boarders_students_secondary_education, na.rm = TRUE), 
+            boarding_students_secondary_education = sum(boarding_students_secondary_education, na.rm = TRUE),
+            students_secondary_education = sum(students_secondary_education, na.rm = TRUE),
+            external_students_rate = mean(external_students_rate, na.rm = TRUE),
+            half_boarders_students_rate = mean(half_boarders_students_rate, na.rm = TRUE), 
+            boarding_students_rate = mean(boarding_students_rate, na.rm = TRUE))
+```
+
+
 We can see the final table *student_housing* below. 
 
 ```{r}
