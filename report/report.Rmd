@@ -7,10 +7,17 @@ output:
     theme : cerulean
     highlight : pygments
     number_sections: true
+    toc_depth : 3
     toc : true
     toc_float : true
     code_folding: hide
 ---
+<style>
+body {
+  text-align: justify;
+  text-justify: inter-word;
+}
+</style>
 
 ```{r child = c('intro.Rmd', 'data.Rmd', 'eda.Rmd', 'analysis.Rmd', 'concl.Rmd')}
-```
+``` 

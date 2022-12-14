@@ -213,22 +213,22 @@ knitr::kable(cbind(
 
 ## Single-parent families dataset
 
-This data set provides information about the single-parent families in each municipality. The census has been made every five years since 2008. This data set contains 104’986 observations.
+This data set provides information about the single-parent families in each municipality. The census is made two years in a row every five years since 2007. This data set contains 606 observations.
 
 
 ```{r}
 knitr::kable(cbind(
   c(
     '**geocode**',
-    '**municipality**',
+    '**libgeo**',
     '**year**',
     '**sing_par**'
   ),
   c(
-    'Geographical code from INSEE',
-    'Name of the municipality',
+    'Departmental code from INSEE',
+    'Name of department',
     'Census year',
-    'Single-parent families'
+    'Number of single-parent families'
 
 
   )
@@ -239,7 +239,7 @@ knitr::kable(cbind(
 
 ## Covid Data set
 
-This is a time based data set that gives us information on the COVID tests and results carried out by laboratories, hospitals, pharmacists, doctors and nurses. It is updated daily. On the 11th October, the data set contained 543’974 observations.
+This is a time based data set that gives us information on the COVID 19 tests and results carried out by laboratories, hospitals, pharmacists, doctors and nurses. It is updated daily. On the 30th November, the data set contained 82'394 observations.
 
 
 ```{r}
@@ -258,12 +258,12 @@ knitr::kable(cbind(
   ),
   c(
     'Department code',
-    'Date of the tests. Format yyyy-mm-dd-yyyy-mm-dd ',
-    'Description of the age group as [m-n], m and n being the lower and     upper limits.',
-    'Denomination of the age group. n-1 is used in this case excepet for    the oldest group where 18 is used',
+    'Week of the tests. Format yyyy-Sww',
+    'Description of the age group as [m-n], m and n being the lower and upper limits.',
+    'Denomination of the age group. n-1 is used in this case excepet for the oldest group where 18 is used',
     'Population',
-    'Daily patients testing positive',
-    'Daily patients tested',
+    'Weekly patients testing positive',
+    'Weekly patients tested',
     'Incidence rate',
     'Positivity rate',
     'Screening rate'
@@ -273,7 +273,7 @@ knitr::kable(cbind(
 [Source of the data set](https://www.data.gouv.fr/fr/datasets/r/356bde9d-18b6-4d8b-b8bb-150cba5fba74)
 
 **Loading of the data** 
-All but the single_parent dataset are CSV files with semicolons as separators. The single_parent data set is in excel format, so we have to use read_excel. Then, we use skip because the document includes extra header information rows.
+All but the single_parent dataset are CSV files with semicolons as separators. The single_parent data set is in excel format, so we have to use read_excel. We used "skip = 4" because the document includes extra header information rows.
 ```{r, echo=TRUE, message=FALSE, warning = FALSE}
 DNB_par_etablissement <- read_delim(here::here("data/DNB-par-etablissement.csv"), ";", escape_double = FALSE, trim_ws = TRUE)
 Etablissements_labellises_generation_2024 <- read_delim(here::here("data/Etablissements-labellises-generation-2024.csv"),";", escape_double = FALSE, trim_ws = TRUE)
@@ -341,7 +341,7 @@ dnb_results <- dnb_results %>%
 dplyr::filter(!department_fr %in% c("Polynesie-Française","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "NA", "-"))
 
 ```
-5.  We want to know the attribution rate of each mention. It is needed in order to do some true comparisons between region without the same number of students.
+5.  We want to know the attribution rate of each distinction. It is needed in order to do some true comparisons between region without the same number of students.
 ```{r, echo = TRUE}
 dnb_results <- dnb_results %>% 
   mutate(without_pct = admitted_without/admitted*100,
@@ -351,12 +351,9 @@ dnb_results <- dnb_results %>%
          )
 
 ```
-```{r}
-dnb_results <- dnb_results %>% 
-dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "NA", "-"))
-```
-6. The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize all values to the department level.
-```{r}
+
+6. Other data sets used for the project only go down to the department level. We therefore have to summarize all values to the department level for further merges and analyses between data sets.
+```{r,echo=TRUE}
 dnb_results_dep <- dnb_results %>% 
   select(session, department_code, region:TB_pct) %>% 
   group_by(department_fr, session, region) %>% 
@@ -375,9 +372,9 @@ dnb_results_dep <- dnb_results %>%
 ```
 
 
-We can see the final table *dnb_results* below. 
+We can see the summarized data set **dnb_results_dep** below. 
 ```{r}
-#datatable(dnb_results)
+datatable(dnb_results_dep, options =list(scrollX = "300px"))
 ```
 
 
@@ -416,7 +413,9 @@ establishment_24$department_fr <- stri_trans_general(establishment_24$department
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
 
 ```
-    We can see on the map below, that the data set contains establishments from the overseas collectivities (COM) but from the French international schools as well.
+
+We can see on the map below, that the data set contains establishments from the overseas collectivities (COM) but from the French international schools as well.
+
 ```{r, warning=FALSE, out.width='100%', out.height= '50%'}
 g <- list(
   scope = 'world',
@@ -438,7 +437,7 @@ fig <- fig %>%
               hoverinfo = "text")
 fig
 ```
-As previsouly discussed we have decided to keep only data from mainland France. We have to make sure that we also remove the French international schools. We also take this opportunity to remove unused variables.
+As previsouly discussed we have decided to keep only data from mainland France. We had to make sure that we also removed the French international schools. We took the opportunity to remove unused variables.
 ```{r, echo=TRUE}
 establishment_24 <- establishment_24 %>% 
   dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "-")) %>% 
@@ -450,22 +449,13 @@ establishment_24 <- establishment_24 %>%
 
 
 ```
-5.  We create a `high_school_type variable` which contains the information of agricultural_high_school, military_high_school, vocational_high_school.
-```{r, echo = TRUE}
-
-establishment_24 <- establishment_24 %>% 
-  mutate(high_school_type = case_when(agricultural_high_school == 1 ~ "agricultural high school",
-                                      military_high_school == 1 ~ "military high school",
-                                      vocational_high_school == 1 ~ "vocational high school")) %>% 
-    select(-c(agricultural_high_school, military_high_school, vocational_high_school))
-```
-6. The "Diplome National du Brevet" is the diploma received at the end of "collège". We have to keep establishments which are "collège" and drop all the rest. 
+5.  The "Diplome National du Brevet" is the diploma received at the end of "collège". We have to keep establishments which are "collège" and drop all the rest. 
 ```{r}
 establishment_24 <- establishment_24 %>% 
   dplyr::filter(school_type == "Collège")
 ```
-7. The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize by counting the number of establishment created each session by department. The end of the label period is not of interest for us as the first end date is on the 9.01.2021 which is categorised as session 2022 and we have results for dnb up until session 2021. 
-```{r}
+7. Other data sets only go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize by counting the number of establishment created each session by department. The end of the label period is not of interest for us as the first end date is on the 9.01.2021 which is categorised as session 2022 and we have results for dnb up until session 2021. 
+```{r, echo=TRUE}
 establishment_24_dep <- establishment_24 %>% 
   select(region, department_fr, session_started) %>% 
   group_by(department_fr, session_started) %>% 
@@ -473,9 +463,9 @@ establishment_24_dep <- establishment_24 %>%
 ```
 
 
-We can see the final table *establishment_24* below. 
+We can see the summarized data set **establishment_24_dep** below. 
 ```{r}
-#datatable(establishment_24)
+datatable(establishment_24_dep, options =list(scrollX = "300px"))
 ```
 
 ## student_housing
@@ -495,7 +485,7 @@ student_housing <- student_housing %>%
   mutate(session = year_back_to_school + 1) %>% 
     select(year_back_to_school,session, everything()) #here just to order variables
 ```
-4.  We need to add the column `department_fr`.
+4.  We need to add the column `department_fr` and remove the departments outside mainland France. 
 ```{r, echo = TRUE}
 student_housing$department_fr <- stri_trans_general(student_housing$department, "Latin-ASCII") %>%
   str_to_title(.) %>% 
@@ -515,21 +505,21 @@ student_housing <- student_housing %>%
   dplyr::filter(!department_fr == "NA")
 
 ```
-5.  We are not interested by students for higher education and therefore can delete their variables. 
-```{r}
+5.  We are not interested by students from higher education and therefore can delete their variables. 
+```{r, echo=TRUE}
 student_housing <- student_housing %>% 
   select(-c(contains("higher")))
 ```
 6.  We want to know the rate of each housing offering. It is needed in order to do some true comparisons between region without the same number of students.
 
-```{r}
+```{r, echo=TRUE}
 student_housing <- student_housing %>% 
   mutate(external_students_rate = external_students_secondary_education/students_secondary_education*100, 
          half_boarders_students_rate = half_boarders_students_secondary_education/students_secondary_education*100,
          boarding_students_rate = boarding_students_secondary_education/students_secondary_education*100)
 ```
-7.  The other data sets go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize all values to the department level.
-```{r}
+7.  Other data sets only go down to the department level. We therefore have to create a simplified version for further merges between data sets. We will summarize all values to the department level.
+```{r, echo=TRUE}
 housing_dep <- student_housing %>% 
   select(session, region, students_secondary_education:boarding_students_rate) %>% 
   group_by(session, department_fr) %>% 
@@ -543,10 +533,10 @@ housing_dep <- student_housing %>%
 ```
 
 
-We can see the final table *student_housing* below. 
+We can see the summarized data set **housing_dep** below. 
 
 ```{r}
-#datatable(student_housing)
+datatable(housing_dep, options =list(scrollX = "300px"))
 ```
 
 ## single_parent
@@ -562,7 +552,7 @@ single_parent[["session"]]<- as.double(single_parent[["session"]])
 single_parent[["sing_par"]]<- as.double(single_parent[["sing_par"]])
 ```
 3. The session variable is already implemented in this data set.
-4. We need to add the column `department_fr`.
+4. We need to add the column `department_fr` and remove the department outside of mainland France. 
 ```{r , echo=TRUE}
 single_parent$department_fr <- stri_trans_general(single_parent$department, "Latin-ASCII") %>%
   str_to_title(.) %>%
@@ -576,8 +566,19 @@ single_parent$department_fr <- stri_trans_general(single_parent$department, "Lat
   str_replace_all("Alpes-de-Hte-Provence", "Alpes-de-Haute-Provence") %>%      
   str_replace_all("Territoire-de-Belfort", "Territoire de Belfort") %>%
   str_replace_all("Seine-Saint-denis", "Seine-Saint-Denis")
+
+single_parent <- single_parent %>% 
+dplyr::filter(!department_fr %in% c("Polynesie-Francaise","Guyane", "Martinique", "Guadeloupe", "La-Reunion", "Mayotte", "Saint-Martin", "-")) %>% 
+  dplyr::filter(!department_fr == "NA")
+
 ```
 5.  No need for further data wrangling for this data set
+
+We can see the final table **single_parent** below. 
+
+```{r}
+datatable(single_parent, options =list(scrollX = "300px"))
+```
 
 ## covid_in_schools
 
@@ -592,7 +593,7 @@ covid_in_schools[["positive"]] <- as.double(gsub(",",".", covid_in_schools[["pos
 covid_in_schools[["incidence_rate"]] <- as.double(gsub(",",".", covid_in_schools[["incidence_rate"]]))
 covid_in_schools[["positivity_rate"]] <- as.double(gsub(",",".", covid_in_schools[["positivity_rate"]]))
 ```
-3.  We need to create two new variables. The first will be the date categorizing each week. We chose the first date (Monday). The test for a session will be those from August to July of the next year. As our argument will be set on the month, we might have some test done the first days of august count towards the "wrong" session. The number of Covid cases in August are relatively low compared to the rest of the year and it represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
+3.  We need to create two new variables. The first will be the `test_date` categorizing each week. We chose the first day of the week. As we had the week number we had to select the week number and then for each year add seven days to the Monday of the first week of the year. The second variable is the `session`. A session is categorised from August to July of the next year. As our argument will be set on the month, we might have some test done the first days of august count towards the "wrong" session. The number of Covid cases in August are relatively low compared to the rest of the year and it represents at maximum 6 days of tests. Therefore we consider this margin of error to be satisfactory.
 ```{r, echo = TRUE}
 covid_in_schools <- covid_in_schools %>%
   mutate(test_date = case_when (as.numeric(substr(test_week, 1,4))== 2020
@@ -600,12 +601,10 @@ covid_in_schools <- covid_in_schools %>%
                                 as.numeric(substr(test_week, 1,4))== 2021
                                 ~ lubridate::ymd('2021-01-04') + lubridate::weeks(as.numeric(substr(test_week, 7,8))),
                                 as.numeric(substr(test_week, 1,4))== 2022
-                                ~ lubridate::ymd('2022-01-03') + lubridate::weeks(as.numeric(substr(test_week, 7,8)))
-  ))
-                               
-covid_in_schools <- covid_in_schools %>%
-  mutate(session = case_when(month(test_date) <= 7 ~ year(test_date),
+                                ~ lubridate::ymd('2022-01-03') + lubridate::weeks(as.numeric(substr(test_week, 7,8)))),
+         session = case_when(month(test_date) <= 7 ~ year(test_date),
                              month(test_date) >  7 ~ year(test_date)+1))
+                              
 ```
 4.  Only department code. We need to input the column `department_fr` and `region`. We use the `department_fr` and `region` variables from dnb_results. We join the two datasets by `department_code`. To do this, we first need to match the two by removing the first character of the `department_code` from dnb_results.
 ```{r, echo = TRUE}
@@ -625,8 +624,8 @@ covid_in_schools <- covid_in_schools %>%
 ```
 
 We can see the final table *covid_in_schools* below. 
-```{r}
-#datatable(covid_in_schools)
+```{r, warning=FALSE}
+datatable(covid_in_schools, options =list(scrollX = "300px"))
 ```
 
 ## Auxiliary data sets
@@ -636,7 +635,7 @@ We will use the ggplot France map for our visualizations
 ```{r, echo = TRUE}
 map <- map_data("france")
 ```
-The region variable is in fact the departments. We rename it "department_fr" to fit with in the other data sets.
+The region variable is in fact the departments. We rename it "department_fr" to fit in with the other data sets.
 ```{r, echo = TRUE}
 colnames(map)[5]<- "department_fr"
 

@@ -7,7 +7,8 @@ packages <- c(
   "here", "readr", "readxl", "tibble",# for the project's organization
   "tidyverse", "lubridate","stringr","stringi","DT", # for wrangling
   "patchwork", "maps", "scales", "plotly", "viridis", "hrbrthemes", # for plotting
-  "knitr", "kableExtra", "bookdown", "rmarkdown" # for the report
+  "knitr", "kableExtra", "bookdown", "rmarkdown", # for the report
+  "factoextra", "cluster", "FactoMineR", "corrplot", "sjPlot", "fmsb" #for analysis
 )
 purrr::walk(packages, library, character.only = TRUE)
 

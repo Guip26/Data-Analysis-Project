@@ -10,11 +10,10 @@ To explore this data set we have decided to start on a national level to analyse
 
 ### National analysis
 
-**Talk about the two graph (e.g. number of students growing, what is the number of students, pct growth, ... ). Mention that the shift at year 2017 will be analysed in the analysis.**
+We created a data set summarizing the results at the national level. We simplified our visualisation process by pivoting the table. During the process, we created four new variables `Candidates`, `Number_of_students`, `Mention_type` and `Rate`. 
 
 ```{r, echo=TRUE}
 France_results <- dnb_results %>% 
-  #select(session,registered, present, contains("admitted")) %>% 
   group_by(session) %>% 
   summarise(registered = sum(registered),
             present = sum(present),
@@ -39,7 +38,7 @@ France_results <- dnb_results %>%
 
 ```
 
-The graph below was made by first grouping data by `session`. A `sum` was then applied to summarize the variables.
+For this first graph, we plotted the `Number_of_students` and grouped them by `Candidates`.
 
 ```{r, echo = TRUE, warning = FALSE, out.width='100%', out.height= '50%'}
 
@@ -54,10 +53,10 @@ p <- France_results %>%
 ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
+According to the graph, we see that the number of admissions is increasing over the years. In fact, there is 704'742 admitted students in 2021 compared to only 572'236 in 2006. Though, we notice a slight decrease in 2018 and 2019. The positive trend resumed after that till 2021 to reach its peak in 2020 with 716'237 admissions. Similarly, the registration number follows the same tendency. In fact, 729'803 students had registered in 2006 compared to 801'721 students in 2021, for an increase of 9.85%, which is the highest record that has been stated so far. Also, the presence number broke the record in 2021 as it reached 795'209 students.
 
-We can notice that the
 
-National DNB statistics (rate)
+For the the analysis of the success rate and the rate of achievement of honours. We plotted the `Rate` and grouped them by `Mention_type`.
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -73,9 +72,15 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
+The number of students that were admitted without a mention has been decreasing since 2006. It reached 284'774 students (53.85%) in 2006, compared to 154'095 students (25.11%) in 2021. The negative tendency calmed itself during the 2017-2021 period. As it is the case for all mentions, there is a complete shift in 2017. This will be analysed in further detail in the part one of our analysis. Contrary to the students graduating without honours, the number of students were admitted with the TB distinction is showing a positive pattern. It grew from 31'563 (4.49%) in 2006 to reach 204'523 (23.98%) in 2021. The pattern for the two other distinctions are relatively similar as they remained stable up until 2017 but the change was not as drastic asfor the first two distinction mentionned. The number of students that are admitted with a good mention show a positive pattern. In fact, the number has developed from 91'719 students (13.66%) in 2006 to 180'774 students (25.07%) in 2021. The number of students admitted with an AB distinction is increased slightly from 2006 to 2021. It developed from 164'180 (28%) students in 2006 to 165'350 students (25.83%) in 2021, representing a growth rate of 0.71%.
+
+
 ### Regional Analysis
 
-Success rate
+We started with a comparative analysis in order to compare the success rate between the regions. For this, we needed to create the charts below based on the dnb-Results dataset. 
+
+
+We created this bar plot in order to visualize the average success rate of each of the French regions. We used the function group_by in order to group our success rate data by region: We took the `success_rate` and the `region`, we computed the average success rate for each region and, we plotted them in the graph below.
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -88,9 +93,8 @@ p <- dnb_results %>%
              fill = region)) + 
          geom_col() +
          scale_fill_viridis(discrete = TRUE) +
+         labs(title = "Average success rate by region, 2006-2021", y = "Rate in %")+
          theme_ipsum() +
-         ggtitle("Success rate") +
-         ylab("Rate in %")+
          theme(axis.title.x=element_blank(),
                axis.text.x=element_blank(),
                axis.ticks.x=element_blank())
@@ -99,11 +103,15 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-#### Number of students per result and region during the period 2006-2021 {.tabset}
+The success rate is following a positive pattern. It has been increasing since 2006 in all French regions.
+On average, French regions have performed similarly over the years. However, the region of Bretagne took the lead, achieving a success rate of 89.8%. The region Nouvelle-Aquitaine followed with a success rate of 86.6%. On the third position, Auvergne-Rhône-Alpes recorded a success rate of 86.4%.
 
-**One description for all of what we see and highlight differences (e.g. Bretagne has higher proportion of students with mentions than no mention).**
 
-##### Number of admitted by region
+#### Number of students per result and region during the period 2006-2021 {.tabset .unnumbered}
+
+To have a clearer idea about the regions that performed the best, we created the following bar plot. It is based on summarized data to help us visualize the regions that recorded the highest number of admissions so far. Students’ distinction has once again been taken into consideration. Hence, we could have an idea about the regions that recorded the highest number of admissions for each of the distinctions until 2021. 
+
+##### Number of admitted by region{-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -127,7 +135,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-##### Admitted with zero mention
+##### Admitted with zero mention {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -151,7 +159,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-##### Admitted with mention AB
+##### Admitted with mention AB {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -175,7 +183,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-##### Admitted with mention B
+##### Admitted with mention B {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -199,7 +207,7 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-##### Admitted with mention TB
+##### Admitted with mention TB {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -223,18 +231,21 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-####{-}
+#### {-}
 
-#### Period 2006-2021 by region {.tabset}
+Based on the chart, Ile de France has recorded the highest number of admissions since 2006: 1 914 458 students got admitted in this region so far. The second position was assigned to Auvergne Rhône-Alpes, with a total number of admissions equal to 1 0276 655 students. On the third position, the region Hauts-de-France registered 99 0610 admissions since 2006. 
+Also, Grand Est, Nouvelle-Aquitaine and Occitanic have performed similarly over the years, recording around 85 000 admissions over the period [2006-2021]. On the contrary, Corse has recorded the least number of admissions so far: Only 41 541 students were admitted in this region over the same time interval.
 
-**One description for all of what we see and highlight differences (e.g. Bretagne in B and zero, zero and AB decreasing and B and TB increasing)**
+Taking the distinction into consideration, we notice that the regions with the highest number of admissions are the ones with the highest number of all the distinctions. As a matter of fact, Ile de France continues to lead the number of highest honour (TB), high honours (B), honours (AB) and standard pass (without) admissions.
 
-##### Success rate
+The results are not surprising. Indeed, according to statistics, Ile de France is the most populated region, with an approximative number of 12 262 544 inhabitants. Thus, we expected it to take the lead in terms of the number of admissions. 
 
-```{r, echo=TRUE}
-y_scale_pct <- scale_y_continuous(limits = range(c(0:100)))
+#### Period 2006-2021 by region {.tabset .unnumbered}
 
-```
+In order to take the time component into account, a linear chart has been created: We used the group_by function in order to group our success rate data by session and region. We relied on this chart to analyze the evolution of the success rate throughout the years for each of the regions. Also, it enabled us to take the admission’s distinction into consideration and thus, analyze the development of students’ performance in all French regions.
+
+##### Success rate {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -247,20 +258,17 @@ y_scale_pct <- scale_y_continuous(limits = range(c(0:100)))
             color = region,
             text = region)) + 
         geom_line() +
-        y_scale_pct +
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Success rate") +
-        ylab("Rate in %")+
-        theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank(),
-              axis.ticks.x=element_blank())
+        ylab("Rate in %")
 
 ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ```
 
-##### Admitted with zero mention
+##### Admitted with zero mention {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -276,16 +284,14 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Admitted with zero mention") +
-        ylab("Rate in %")+
-        theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank(),
-              axis.ticks.x=element_blank())
+        ylab("Rate in %")
 
 ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ```
 
-##### Admitted with mention AB
+##### Admitted with mention AB {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -301,16 +307,14 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Admitted with mention AB") +
-        ylab("Rate in %")+
-        theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank(),
-              axis.ticks.x=element_blank())
+        ylab("Rate in %")
 
 ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ```
 
-##### Admitted with mention B
+##### Admitted with mention B {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -326,16 +330,14 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Admitted with mention B") +
-        ylab("Rate in %")+
-        theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank(),
-              axis.ticks.x=element_blank())
+        ylab("Rate in %")
 
 ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ```
 
-##### Admitted with mention TB
+##### Admitted with mention TB {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -351,20 +353,28 @@ ggplotly(p, tooltip = c("text","x" ,"y" ))
         scale_color_viridis(discrete = TRUE) +
         theme_ipsum() +
         ggtitle("Admitted with mention TB") +
-        ylab("Rate in %")+
-        theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank(),
-              axis.ticks.x=element_blank())
+        ylab("Rate in %")
 
 ggplotly(p, tooltip = c("text","x" ,"y" ))
 
 ```
 
-####{-}
+#### {-}
+
+The standard pass admissions’ rate follows a negative pattern: It has been decreasing since 2006 for all the regions. It dropped from 57.7 % in 2006 to 24.9% in 2021 for Ile de France, from 49.6% to 24.4% for Nouvelle-Aquitaine and from 53.4 % to 22.6% for Auvergne-Rhône-Alpes.
+
+In 2017 and 2020, the standard pass admission’s rate as well as the rate of admissions with honours dropped remarkably, hitting rock bottom in 2020 for all the regions. However, this tendency was disrupted in 2019, in which this number increased noticeably. In 2021, we noticed a reproduction of 2017’s positive pattern translating thus, a deterioration of students’ performance once again.
+
+Conversely, the number of students succeeding with a great distinction (highest and high honours) has been increasing in all French regions since 2006, reaching its highest point in 2020. Similarly, we notice a strong negative evolution in 2019 that resumed in 2021.
+
 
 ### Departmental Analysis
 
-#### Box plot Analysis per department {.tabset}
+Following our national and regional analysis, we wanted to reduce the scope of our analysis further in order to have a better understanding of our data. Hence, we processed our data on a departmental level. In order to do that, we had to create the following box plots based on the dnb-results dataset.
+
+#### Box plot Analysis per department {.tabset .unumbered}
+
+The first step of this analysis is to visualize the performance of all French departments over the period [2006-2021]. In order to do that, the following box plot has been created. For this, we needed to group our data by `department` and `session`. Then, we plotted the success rate of all French departments over the period [2006-2021]. 
 
 ```{r, echo=TRUE}
 
@@ -375,12 +385,10 @@ dnb_pct_dep <- dnb_results %>%
             TB_pct_dep = mean(TB_pct, na.rm = TRUE),
             without_pct_dep = mean(without_pct, na.rm = TRUE),
             success_rate_pct_dep = mean(success_rate_pct, na.rm = TRUE))
-datatable(dnb_pct_dep)
 ```
 
-**Small descritption for each and one analysis encompassing them all. (e.g mention that confidence interval is small or big, and increasing or decreasing)**
-
-##### success_rate_pct
+##### success_rate_pct {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -401,7 +409,8 @@ p <- dnb_pct_dep %>%
 ggplotly(p, tooltip = c("text","text2"))
 ```
 
-##### without_pct
+##### without_pct {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -424,7 +433,8 @@ ggplotly(p, tooltip = c("text","text2"))
         
 ```
 
-##### B_pct
+##### B_pct {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -446,7 +456,8 @@ p <- dnb_pct_dep %>%
 ggplotly(p, tooltip = c("text","text2"))
 ```
 
-##### AB_pct
+##### AB_pct {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -468,7 +479,8 @@ p <- dnb_pct_dep %>%
 ggplotly(p, tooltip = c("text","text2"))
 ```
 
-##### TB_pct
+##### TB_pct {-}
+*It is to be noted that for a better visual interpretation the scale of the y-axis is adapted to each graph.*
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -493,14 +505,20 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ####  {.unnumbered}
 
-#### Box plot Analysis of at the Department level {.tabset}
+Based on our data analysis, the success rate is following a positive pattern. It has been increasing since 2006. In the same way, we notice an improvement of the students’ success rate in 2017 as well as a remarkable decline in 2019. A boost in the students’ performance was recorded in 2021 in which, the success rate in all departments has reached its highest level since 2006.
 
-**Analyse first differences between 2020 and 2006 and then talk about differences between paris and eure et loir**
+Also, the number of students succeeding with honours, or a standard pass distinction has been decreasing since 2006 for all France departments. It remarkably decreased in 2017 compared to the previous years, reaching its lowest level in 2020. However, the negative pattern resumed in 2021, in which the number of students graduating with honours or with a standard pass distinction started to increase.
 
-##### Paris 2020
+In the same context, the number of students graduating with highest or high honours has been increasing since 2006 for all French departments. It peculiarly heightened in 2017 to reach its highest point in 2020, which reflects a noticeable improvement in the students’ performance.
 
-First analysis of the best performing highest rate of TB -\> Paris 2020
 
+#### Box plot Analysis of at the Department level {.tabset .unnumbered}
+
+The following box plot was created in order to compare the performance of the best and "worst" department. It allowed us to visualize the difference between the highest achieving department, Paris in 2020 and one of the least achieving one, Eure et Loir. We chose to display the results of each establishment to see the dispersion in the results within one department. 
+
+We plotted the different success rates of the Paris department for the year 2006 and 2020 using the filter function. We proceeded the same way to plot the success rates of the Eure et Loir region over the same period.
+
+##### Paris 2020 {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Paris <- dnb_results %>%
@@ -531,10 +549,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
-##### Paris 2006
-
-First analysis of the best performing highest rate of TB -> Paris 2020
-
+##### Paris 2006 {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Paris <- dnb_results %>%
@@ -565,10 +580,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
-##### Eure et Loir 2020 {.unnumbered}
-
-Lowest performing department in TB rate and "best" in zero mention rate -> Guyane 2006
-
+##### Eure et Loir 2020 {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Eure <- dnb_results %>%
@@ -597,10 +609,7 @@ Eure$Mention_type <- factor(Eure$Mention_type, levels = c("success_rate_pct","wi
 ggplotly(p, tooltip = c("text","text2"))
 ```
 
-##### Eure et Loir 2006 {.unnumbered}
-
-Lowest performing department in TB rate and "best" in zero mention rate -\> Guyane 2006
-
+##### Eure et Loir 2006 {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 Eure <- dnb_results %>%
@@ -631,64 +640,71 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ####  {.unnumbered}
 
+**Paris**
+
+On average, the success rate in all Paris establishments reached 93% in 2020. Representing thus, the highest performance recorded since 2006. Accordingly, the number of highest honour admissions outpaced the number of admissions with other distinctions.
+
+Conversely, the success rate was much lower in 2006: It was around [ 40%- 60%], compared with [66%-100%] in 2020. In the same year, the number of students succeeding with a standard pass distinction was the highest, while the number of admissions with highest honour represented the smallest percentage.
+
+**Eure et Loire**
+
+In 2020, the results of the department of Eure et Loire followed the same pattern as those of the Paris department. It reached its peak in 2020, with an average success rate of 87.90%, compared to only 81% in 2006. Similarly, the number of admissions with highest honour outpaced the number of successes with other distinctions, in 2020.
+
+However, in 2006, the number of students graduating with a standard pass distinction outstripped the one of those graduating with all the other distinctions.
+
+Overall, in 2020, the Paris department outperformed the department of Eure et Loire, with an average success rate of 92.40% compared to only 87.90% for Eure et Loire. In the same context, the number of admissions with highest honour in the department of Paris outstripped largely the one of Eure et Loire. It was around [29.17% -55.21%] in Paris and around [14.52%-33.53%], in the department of Eure et Loire. Also, the number of standard pass admissions was remarkably higher in Eure et Loire. It represented 24.44% of the total number of admissions in 2020, compared to only 12.97% in Paris. Similarly, the department recorded an average rate of admissions with the honours distinction equal to 22.86%, compared to only 17.59% in Paris. We see that the dispersion pattern of the establishment is rather similar between the departments but changes between 2006 and 2020.
+
+
+
 ## Establishment_24
 
-```{r, echo = TRUE}
-
-map_theme <- theme(title=element_text(),
-                   plot.title=element_text(margin=margin(20,20,20,20), size=18, hjust = 0.5),
-                   axis.text.x=element_blank(),
-                   axis.text.y=element_blank(),
-                   axis.ticks=element_blank(),
-                   axis.title.x=element_blank(),
-                   axis.title.y=element_blank(),
-                   panel.grid.major= element_blank(), 
-                   panel.background= element_blank()) 
+```{r, echo = TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- ggplot() +
   geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") +
-  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text2= establishment), size = 0.5)+
+  geom_point(data = establishment_24, aes(x = longitude , y = latitude, text = department_fr, text2 = establishment),  size = 0.5)+
   coord_map() +
-  scale_fill_viridis(name = "Average sucess rate")+
   labs(x = "", 
        y = "", 
-       title = "Average success rate, 2006-2021") +
+       title = 'Establishment labelled "Génération 2024') +
   map_theme
 
-ggplotly(p, tooltip = c("text2") )
+ggplotly(p, tooltip = c("text", "text2"))
 ```
 
 
 
 
-####  New establishment 2024 labellization per department and year {.tabset}
+####  New establishment 2024 labellization per department and year {.tabset .unnumbered}
 
 ```{r, echo=TRUE}
 establishment_24_dep_map <- left_join(x = map[,-6], y = establishment_24_dep, by = "department_fr")
 ```
 
-##### 2017
+##### 2017 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 
-p <-establishment_24_dep_map  %>% 
+p <- establishment_24_dep_map  %>% 
   filter(session_started == 2017) %>%
   ggplot(aes(x = long, 
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2017")+
   map_theme
 
+
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2018
+##### 2018 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -699,8 +715,9 @@ p <-establishment_24_dep_map  %>%
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2018")+
@@ -709,7 +726,7 @@ p <-establishment_24_dep_map  %>%
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2019
+##### 2019 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -720,8 +737,9 @@ p <-establishment_24_dep_map  %>%
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2019")+
@@ -730,7 +748,7 @@ p <-establishment_24_dep_map  %>%
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2020
+##### 2020 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -741,8 +759,9 @@ p <-establishment_24_dep_map  %>%
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2020")+
@@ -751,7 +770,7 @@ p <-establishment_24_dep_map  %>%
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2021
+##### 2021 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -762,8 +781,9 @@ p <-establishment_24_dep_map  %>%
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2021")+
@@ -772,7 +792,7 @@ p <-establishment_24_dep_map  %>%
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2022
+##### 2022 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -783,8 +803,9 @@ p <-establishment_24_dep_map  %>%
              y = lat, 
              group = group, 
              text = department_fr)) +
+  geom_polygon(data = map, aes(long,lat, group = group), fill = "white", color = "grey") + # here to add the outline of all departments
   geom_polygon(aes(fill= establishment), color = "black") +
-  scale_fill_viridis(name = "Number of establishment") +
+  scale_fill_viridis(name = "Number of establishment", limits = c(0, 50)) +
   labs(x = "", 
        y = "", 
        title = " New establishment 2024 labellization in 2022")+
@@ -796,6 +817,49 @@ ggplotly(p, tooltip = c("text","fill"))
 
 #### {.unnumbered}
 
+```{r, echo=TRUE}
+# We first need to count the number of establishment per department
+nb_est <- dnb_results %>% 
+  select(school_id, department_fr) %>% 
+  group_by(department_fr) %>% 
+  summarise(n_distinct(school_id))
+# We include the values with the one from establishment_24 
+establishment_24_dnb_dep <- left_join(x = nb_est, y = establishment_24_dep)
+
+# We measure the rate of labelled establishment
+establishment_24_dnb_dep <- establishment_24_dnb_dep %>% 
+  group_by(department_fr) %>% 
+  summarise(establishment = sum(establishment),
+            nb_est = mean(`n_distinct(school_id)`)) %>% #use mean to keep the value of n_distinct(schoold_id) 
+  mutate(rate = establishment/nb_est*100)
+
+```
+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+
+establishment_24_dnb_dep_map <- left_join(x = map[,-6], y = establishment_24_dnb_dep, by = "department_fr")
+
+p <-establishment_24_dnb_dep_map  %>% 
+  ggplot(aes(x = long, 
+             y = lat, 
+             group = group, 
+             text = department_fr)) +
+  geom_polygon(aes(fill= rate), color = "black") +
+  scale_fill_viridis(name = "Rate of labelled establishment in % ") +
+  labs(x = "", 
+       y = "", 
+       title = "Establishment 2024 in 2022")+
+  map_theme
+
+ggplotly(p, tooltip = c("text","fill"))
+
+```
+
+
+
+
+
+
 ## student_housing
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 p <- student_housing %>% 
@@ -806,21 +870,21 @@ p <- student_housing %>%
             boarding_students_secondary_education = sum(boarding_students_secondary_education, na.rm = TRUE)) %>% 
   gather("Housing_option", "students", 2:4) %>%  
   ggplot(aes(x=session, 
-              y=students,
-              fill=Housing_option)) +
+             y=students,
+             fill=Housing_option)) +
     geom_bar(stat="identity", position=position_dodge())+
     ggtitle("Students per housing option in France")+
-    xlab("year")+
-    ylab("Students")+
+    xlab("Session")+
+    ylab("Number of students")+
     scale_fill_viridis(discrete = TRUE)+
     theme_ipsum()
 
 ggplotly(p, tooltip = "y")
 ```
 
-####  Housing option rate in secondary education per department {.tabset}
+####  Housing option rate in secondary education per department {.tabset .unnumbered}
 
-##### external students
+##### external students {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- housing_dep %>% 
@@ -843,8 +907,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
-
-##### half-boarders students
+##### half-boarders students {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- housing_dep %>% 
@@ -867,8 +930,7 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ```
 
-
-##### boarding students
+##### boarding students {-}
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- housing_dep %>% 
@@ -894,29 +956,28 @@ ggplotly(p, tooltip = c("text","text2"))
 
 ## single_parent
 The first visualisation we wanted to do was a barplot that would show the evolution of the total number of single-parent families in France from 2007 to 2008. To do this, we had to isolate, in a dataset called sp_, the sing_par and session variables, then summarized the number of single-parents with “sum”. In order to remove the years that did not interest us, we had to use the filter function. We then were able to use geom_bar.
-
-```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+```{r , echo=TRUE, warning=FALSE, out.height= '50%'}
 sp1_ <- single_parent %>%
   select(c("session", "sing_par")) %>%
   group_by(session)%>%
   summarise (sing_par = sum(sing_par, na.rm = TRUE))
 
-sp1_$session <- as.factor(sp1_$session)
 
-barplot_pos <- ggplot(data = sp1_, aes(x = as.factor(session), 
-                                       y = sing_par, 
-                                       fill = session))+
+p <- ggplot(data = sp1_, aes(x = as.factor(session), 
+                             y = sing_par, 
+                             fill = as.factor (session),
+                             text = sing_par))+
   geom_col(stat = "identity" )+
-  scale_x_discrete(labels=as.character(sp1_$session), breaks= sp1_$session)+
-  scale_fill_viridis(discrete = TRUE) +
+  scale_fill_viridis(discrete = TRUE, "Session") +
+  labs(x = "", y = "Number of single parent families")+
   theme_ipsum()
 
-barplot_pos
+ggplotly(p, tooltip = "text")
 ```
 Based on the barplot, we can make an overall analysis of the evolution of single-parent families in France over the years. Although we are missing several years, we can clearly see that the number of single-parent families has continued to increase since 2007. In fact, single-parent families numbered 2,427,110 in 2007, whereas in 2018, they were numbering 3,031,823. In just over 10 years, there has been a 20% increase.
 
-#### Single-parent families by departments, 2007
-We need to create a data set needed to create the maps.We join the single_parent and map data sets using `department_fr`.  
+#### Single-parent families by departments, 2007 {-}
+We need to create a data set needed to create the maps.For this, we join the single_parent and map data sets using `department_fr`.  
 ```{r, echo=TRUE, warning=FALSE}
 jmap_sp<- left_join(x = map[,-6], y = single_parent, by = "department_fr")
 ```
@@ -939,21 +1000,20 @@ p <-jmap_sp %>%
 ggplotly(p, tooltip = c("text","fill"))
 
 ```
+From the map, we realise that the departments with the most single-parent families are those with the most inhabitants (Bien dans ma ville, 2022). This is an unsurprising result which influence our choice to create variables for the data to become easily comparable.
 
-
+To do this we first have to join single_parents and dnb_results_dep by `department_fr` and `session` to have the number of students per department. From this, we use the mutate function to create a new variable that divides `sing_par` by the number of students admitted by department. Thanks to this, we were able to create maps of France showing a proportion of the number of single-parent families per student admitted from 2007 to 2018. To create the interactive maps with nice colours, we used the function ggplotly. 
 ```{r, echo=TRUE}
 sing_dnb <- left_join(x = single_parent, y = dnb_results_dep, by = c("department_fr", "session"))
-```
 
-```{r, echo=TRUE}
 sing_dnb <- sing_dnb %>% 
   mutate(single_parent_per_student_admitted = sing_par/admitted)
 #Join with the map data set for the mapping. 
 sing_dnb_map <- left_join(x = map[,-6], y = sing_dnb, by = "department_fr")
 ```
 
-####  Single parent families per student admitted {.tabset}
-##### 2007
+####  Single parent families per student admitted {.tabset .unnumbered}
+##### 2007 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -965,7 +1025,7 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
        title = "Single parent families per student admitted in 2007")+
@@ -974,7 +1034,7 @@ p <-sing_dnb_map %>%
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2008
+##### 2008 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -986,16 +1046,16 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
-       title = "Single parent families per student admitted in 2008")+
+       title = "Single parent families per student in 2008")+
   map_theme
 
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2012
+##### 2012 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -1007,16 +1067,16 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
-       title = "Single parent families per student admitted in 2012")+
+       title = "Single parent families per student in 2012")+
   map_theme
 
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
-##### 2013
+##### 2013 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -1028,17 +1088,17 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
-       title = "Single parent families per student admitted in 2013")+
+       title = "Single parent families per student in 2013")+
   map_theme
 
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
 
-##### 2017
+##### 2017 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -1050,17 +1110,17 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
-       title = "Single parent families per student admitted in 2017")+
+       title = "Single parent families per student in 2017")+
   map_theme
 
 ggplotly(p, tooltip = c("text","fill"))
 ```
 
 
-##### 2018
+##### 2018 {-}
 
 ```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
@@ -1072,20 +1132,21 @@ p <-sing_dnb_map %>%
              group = group, 
              text = department_fr)) +
   geom_polygon(aes(fill= single_parent_per_student_admitted), color = "black") +
-  scale_fill_viridis(name = "Number of single parent families") +
+  scale_fill_viridis(name = "Single parent families per student", limits = c(0, 8)) +
   labs(x = "", 
        y = "", 
-       title = "Single parent families per student admitted in 2018")+
+       title = "Single parent families per student in 2018")+
   map_theme
 
 ggplotly(p, tooltip = c("text","fill"))
 ```
-
 #### {.unnumbered}
+It can be noted that the departments in the East have the lowest single parent rate (Mayenne, Maine-et-Loire, Vendée), while the departments in the Iles-de-France region (Paris, Seine- Saint-Denis, Marne), those around the Mediterranean Sea (Bouche-du-Rhone, Pyrenees, Herault) and those in Corsica (Haute-Corse, Corse du Sud) have the highest rates. It will therefore be important to keep an eye on these departments when analyzing the results of Diploma Brevet National (DNB). 
 
 ##  covid_in_schools
 
-First, we wanted to get an overview of COVID positive cases in France over the years. So we used ggplot with test_date as the x-axis and positive for the y-axis.
+First, we want to get an overview of COVID positive cases in France over the covid period. We select from covid_in_school the variables `positive` and `test_date`, group by `test_date` and summarise positive with sum. We then use ggplot with `test_date` as the x-axis and `positive` for the y-axis. 
+
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 p <- covid_in_schools %>% 
   select(positive, test_date) %>% 
@@ -1093,30 +1154,36 @@ p <- covid_in_schools %>%
   summarise(positive = sum(positive)) %>% 
   ggplot( mapping = aes(x= test_date, y = positive)) +
   geom_line() +
-  labs(title = "French Covid-19 cases from the age group 11 to 15 years old (2020-2022)", x = "Date", y = "Number of cases")+
+  labs(title = "French  Covid-19 cases for the age group 11 to 15 years old  (2020-2022)", x = "Date", y = "Number of cases")+
   theme_ipsum()
 
 ggplotly(p, tooltip = c("x","y"))
 ```
+From the 2020 until the end of 2021, we notice waves of covid cases. Indeed, every 6 months, the number of positive cases increases to nearly 20'000 positive cases per day and then drops to around 1'000 positive cases per day. However, we observe a clear increase, with a peak of more than 235,000 positive cases per day, in January 2022 . After this increase, the number of positive cases fell significantly to remain around 2'000-10'000 positive cases per day. The 2022 academic year is therefore a year to keep an eye on, when comparing with the results of DNB. 
 
+For the second exploratory analysis, we want to compare the positive covid cases by regions. As population differs between departemnts, it is easier to compare using `incidence_rate`. To create the map, we select from the covid_in_schools dataset the variables `department_code`, `incidence_rate`, `session`, `region`, `department_fr`  and `test_date`, do a group by region and `test_date` and summarise positive by doing an average We also use ggplotly with tooltip to display the important information. 
 
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 p <- covid_in_schools %>%
-  select(c("department_code", "positive", "session", "region", "department_fr", "test_date")) %>%
+  select(c("department_code", "incidence_rate", "session", "region", "department_fr", "test_date", "positive")) %>%
   group_by(region, test_date) %>%
-  summarise(positive = sum(positive)) %>% 
+  summarise(incidence_rate = mean(incidence_rate, na.rm = TRUE), 
+            positive = sum(positive)) %>% 
   ggplot() +
-  geom_line(mapping = aes(x = test_date, y = positive, color = region))+
+  geom_line(mapping = aes(x = test_date, y = incidence_rate, color = region))+
    scale_color_viridis(discrete = TRUE) +
-    ggtitle("Covid-19 cases from the age group 11 to 15 years old by region (2020-2022)") +
+    labs(title = "Covid-19 incidence rate for the age group 11 to 15 years old by region (2020-2022)", x = "Date", y = "Incidence rate") +
     theme_ipsum()
 
 ggplotly(p, tooltip = c("x","y", "color"))
 
 
 ```
+For the age group 11 to 15, Ile-de-France and Auvergne-Rhone-Alpes seem to be the two regions which were the most affected in the first waves. The Covid19 did not spare any department as we their incidence rate closely follow each others. The only slight exception is the wave in March-April 2022 where a few departments like Corse and Bretagne were more affected.
 
-####  Incidence rate average per session {.tabset}
+####  Incidence rate average per session {.tabset .unnumbered}
+
+The last vizualization for the covid dataset is a mapping of incidence rate average by departments from session 2020 to 2023. 
 
 ```{r, echo=TRUE}
 covidpos_dep <- covid_in_schools %>% 
@@ -1128,7 +1195,9 @@ covidpos_dep <- left_join(x = map[,-6], y = covidpos_dep)
 
 ```
 
-##### 2020
+##### 2020 {-}
+*It is to be noted that for a better visual interpretation the scale of is adapted to each graph.*
+
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- covidpos_dep %>% 
@@ -1141,7 +1210,9 @@ p <- covidpos_dep %>%
 
 ggplotly(p)
 ```
-##### 2021
+##### 2021 {-}
+*It is to be noted that for a better visual interpretation the scale of is adapted to each graph.*
+
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- covidpos_dep %>% 
@@ -1154,7 +1225,9 @@ p <- covidpos_dep %>%
 
 ggplotly(p)
 ```
-##### 2022
+##### 2022 {-}
+*It is to be noted that for a better visual interpretation the scale of is adapted to each graph.*
+
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- covidpos_dep %>% 
@@ -1167,7 +1240,9 @@ p <- covidpos_dep %>%
 
 ggplotly(p)
 ```
-##### 2023
+##### 2023 {-}
+*It is to be noted that for a better visual interpretation the scale of is adapted to each graph.*
+
 ```{r , echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- covidpos_dep %>% 
@@ -1180,13 +1255,11 @@ p <- covidpos_dep %>%
 
 ggplotly(p)
 ```
-
-
 #### {.unnumbered}
+During the 2020 session, the average incidence rate is relatively low in all departments of France, except in Mayenne where the incidence rate is 17.96, which is the highest rate.
 
+During the 2021 session, the scale indicates a clear increase in the proportions of average incidence rate in each of the departments, ranging from 246.9 to 52.6 cases per department. The western part of France is much more affected than the eastern part. We can hypothesise that this increase may be due to the fact that these are the departments closest to the borders and other countries.
 
--   Mapping out the underlying structure
--   Identifying the most important variables
--   Univariate visualizations
--   Multivariate visualizations
--   Summary tables
+During the 2022 session, we can observe an overall increase in the incidence rate in each of the departments. Aveyron, Landes, Pyrénées-Atlantiques and Corse du Sud are the departments with the highest rates, with a maximum of 1201.
+
+During the 2023 session, the incidence rate fell significantly, particularly in Ile de France. This is because the school year is not over yet. La Creuse is the department with the highest rate with 420.

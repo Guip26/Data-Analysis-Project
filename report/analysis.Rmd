@@ -4,36 +4,35 @@
 source(here::here("scripts/setup.R"))
 ```
 
-regression Essai
 
-```{r, echo = TRUE}
-lm1 <- lm(dnb_results$TB_pct ~ dnb_results$without_pct + dnb_results$B_pct + dnb_results$AB_pct + dnb_results$without_pct)
-summary(lm1)
-```
 
-cluster Essai
+## What is the evolution of student performance over time and across the different regions/departments of France?
 
-```{r, echo = TRUE}
-dnb_pct_dep <- dnb_results %>%
-  group_by(department, session) %>% 
-  summarise(AB_pct_dep = mean(AB_pct, na.rm = TRUE),
-            B_pct_dep = mean(B_pct, na.rm = TRUE),
-            TB_pct_dep = mean(TB_pct, na.rm = TRUE),
-            without_pct_dep = mean(without_pct, na.rm = TRUE),
-            success_rate_pct_dep = mean(success_rate_pct, na.rm = TRUE))
+```{r, echo = TRUE, warning = FALSE, out.width='100%', out.height= '50%'}
 
-pairs(dnb_pct_dep[2:6])
+p <- France_results %>% 
+  ggplot(aes(x = session, y = Number_of_students, group = Candidates, color = Candidates))+
+  geom_line()+
+  scale_color_viridis(discrete = TRUE) +
+    ggtitle("National DNB statistics") +
+    theme_ipsum() +
+    ylab("Number of students")
 
-distance <- dist(dnb_pct_dep)
-
-mydata.hclust <- hclust(distance)
-plot(mydata.hclust)
+ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
+**talk about the new reform** and sumarise what we have seen in eda 
 
-Creation of the dataset used for the map
 
+
+
+##  Do socio-economic factors such as the type of accommodation, family situation or college policies have an influence on student success ?
+
+
+### establishment_24
+
+We first mapped the establishment labelled Generation 2024 onto a map of the average success rate for the brevet during the period 2006-20021. This visualisation helped us determine whether a clear link could be made or if further analysis need to be performed. To create the map, we first had to calculate the average success rate and join the result with the map data set. 
 ```{r, echo = TRUE}
 
 result <- dnb_results %>% 
@@ -41,39 +40,797 @@ result <- dnb_results %>%
   group_by(department_fr) %>% 
   summarise(success_rate = mean(success_rate_pct, na.rm = TRUE))
 
-```
-
-Join the map from ggplot and our new dataset
-
-```{r, echo = TRUE}
 
 result_map <- left_join(x = map[,-6], y = result)
 ```
 
-plot
+Then, with the help of ggplot, we have superimposed the map of the average success rate and the dotted map of the localisation of the labelled establishment presented in chapter 4.2.  
 
-```{r, warning=FALSE, out.width='75%', out.height= '75%'}
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '75%'}
 
-p <-  ggplot() +
+p <-   ggplot() +
   geom_polygon(data = result_map, aes(long,lat, 
                             group = group, 
                             fill = success_rate, 
                             text = department_fr)) +
   geom_point(data = establishment_24, aes(x = longitude, y = latitude, text2= establishment), size = 0.5)+
   coord_map() +
-  scale_fill_viridis(name = "Average sucess rate")+
+  scale_fill_viridis(name = "Average sucess rate, 2006-2021")+
   labs(x = "", 
        y = "", 
-       title = "Average success rate, 2006-2021") +
+       title = "Average success rate vs labelled Establishemnt") +
   map_theme
   
-ggplotly(p, tooltip = c("text2") )
+ggplotly(p, tooltip = c("text2", "text") ) #due to a strange behavior of ggplotly we must add the "text" variable in the tooltip otherwise the success rate map is only partially displayed. 
 
-
-#for other examples to change colours https://colinfay.me/mapping-the-french-second-round-results-with-r/
 ```
 
-* Answers to the research questions
-* Different methods considered
-* Competing approaches
-* Justifications
+Zooming on the map, one can see that there is no clear pattern of correlation between high achieving departments and great number of labelled establishment. Indeed, one can see that for example, there are many labelled establishment around Paris and the success rate varies greatly. Building from this, we do not expect to have a strong relation between the success rate and the labelling or not of an establishment. 
+
+To test this statement, we did a linear regression at the establishment level. We used the Generation 2024 label as a boolean with 1 for labelled establishment and 0 for unlabelled ones. To create this variable we first had to add the `school_id` and `session_started` variables from establishment_24 to dnb_results. We used left_join by the variable `school_id` to keep all the establishments present in dnb_results. To add the variable `est_24`, we used the mutate coupled with the case_when to cover all cases. `est_24` takes the value 1 when the `session` is greater or equal than `session_started` and the value 0 for all other cases which are when `session` is smaller than `session_started` or the establishment is not labelled and the `session_started`value is NA. 
+
+```{r, echo=TRUE, warning=FALSE}
+est_24_join <- establishment_24 %>% 
+  select(school_id, session_started)
+
+est_24_dnb <- left_join( x = dnb_results, y = est_24_join, by = c("school_id"))
+
+est_24_dnb <- est_24_dnb %>% 
+  filter(session >= 2017) %>% 
+  mutate(est_24 = case_when(session >= session_started ~ 1,
+                            session <  session_started ~ 0, 
+                            is.na(session_started) == TRUE ~ 0 ))
+
+```
+
+To have a visual representation of the possible relation between the success rate and the labelling, we used geom_bin_2d with `est_24` as factor for the x-axis and `success_rate_pct`for the y-axis. We used this way of plotting to display in a more visual way the dispersion of the establishments on the y-axis. To do the linear regression we used the lm function. 
+
+```{r, echo=TRUE, warning=FALSE}
+ggplot(data = est_24_dnb )+
+geom_bin_2d( aes( x = as.factor(est_24), y = success_rate_pct))+
+  labs(x = "est_24")+
+  theme_ipsum()+
+  scale_fill_viridis("Number of establishment")
+
+lm_est_24_dnb <- lm(data = est_24_dnb, success_rate_pct ~ est_24)
+tab_model(lm_est_24_dnb)
+
+```
+The result of this linear regression shows that there could be a potential negative aspect to have the Generation 2024 label. The R squared being below 0.000 makes this analysis highly unreliable as it would explain less than 0.01% of the variation in success rate.
+
+We decided to continue our analysis and proceeded to perform a linear regression with each distinction. To performed them we followed the same steps as for the success rate regression analysis. 
+
+####  Linear regression for each mention {.tabset .unnumbered}
+#####  Without {-}
+```{r, echo=TRUE, warning=FALSE}
+ggplot(data = est_24_dnb )+
+geom_bin_2d( aes( x = as.factor(est_24), y = without_pct))+
+  labs(x = "est_24")+
+  theme_ipsum()+
+  scale_fill_viridis("Number of establishment")
+
+lm_est_24_dnb <- lm(data = est_24_dnb, without_pct ~ est_24)
+tab_model(lm_est_24_dnb)
+
+```
+
+#####  AB {-}
+```{r, echo=TRUE, warning=FALSE}
+ggplot(data = est_24_dnb )+
+geom_bin_2d( aes( x = as.factor(est_24), y = AB_pct))+
+  labs(x = "est_24")+
+  theme_ipsum()+
+  scale_fill_viridis("Number of establishment")
+
+lm_est_24_dnb <- lm(data = est_24_dnb, AB_pct ~ est_24)
+tab_model(lm_est_24_dnb)
+
+```
+
+
+#####  B {-}
+```{r, echo=TRUE, warning=FALSE}
+ggplot(data = est_24_dnb )+
+geom_bin_2d( aes( x = as.factor(est_24), y = B_pct))+
+  labs(x = "est_24")+
+  theme_ipsum()+
+  scale_fill_viridis("Number of establishment")
+
+lm_est_24_dnb <- lm(data = est_24_dnb, B_pct ~ est_24)
+tab_model(lm_est_24_dnb)
+
+```
+
+##### TB {-}
+```{r, echo=TRUE, warning=FALSE}
+ggplot(data = est_24_dnb )+
+geom_bin_2d( aes( x = as.factor(est_24), y = TB_pct))+
+  labs(x = "est_24")+
+  theme_ipsum()+
+  scale_fill_viridis("Number of establishment")
+
+lm_est_24_dnb <- lm(data = est_24_dnb, TB_pct ~ est_24)
+tab_model(lm_est_24_dnb)
+
+```
+
+#### {.unnumbered}
+
+The R squared is unsurprisingly very low again meaning that we can not conclude any strong relation between students achievements and the Generation 2024 label. It is still to be mentioned that it affects positively the TB attribution rate and negatively the rest.
+
+We can conclude that from our analysis we do not see any pattern that the Generation 2024 label influences has any influence on the results of the establishments. It is not that surprising as the objectives of the label is truly to promote the olympics in Paris in 2024 and link the schoold world to the sport's one. It has no requirements on a amount of sport done during the school time. The total amount of sport practised by students is therefore probably not much greater in a labelled institution than in a non-labelled one, hence, the little influence. 
+
+### student_housing
+
+To analyse the impact of the housing offerings of the establishments on the results of their student, we first need to join the student_housing data set and the dnb_results one. We filtered out the unnecessary or repetitive variables of dnb_results such as the academy name and code or the education sector. We used inner_join by `session`, `school_id` and `department_fr` to keep only establishment appearing in student_housing. 
+
+```{r, echo=TRUE}
+dnb_prep_housing <- dnb_results %>% 
+  select(session, school_id, registered:TB_pct)
+housing_dnb <- inner_join(x = student_housing , y = dnb_prep_housing, by = c("session", "school_id", "department_fr"))
+```
+
+It is to note that the number of students between `students_secondary_education` and `registered` does not match as students of the four years of college are accounted for in `students_secondary_education`. 
+
+#### Linear regression
+
+We evaluated the possibility of doing a multiple linear regression by measuring the correlation of the `external_students_rate`, `half_boarders_students_rate` and `boarding_students_rate` variables. 
+```{r, echo=TRUE, warning=FALSE}
+
+corrplot(cor(housing_dnb[c(17:19)]), col = viridis(256)) 
+
+``` 
+The correlation is unsurprisingly very high as if for example one establishment offers a meal for dinner most of the students will take it and very few will eat at home. Therefore, we will use single linear regression to asses whether there exist a link between student results and their habitual place of eating and living. 
+
+#####  Linear regression for each offering {.tabset .unnumbered}
+We simply used the lm function for each offering. We did not include graphs in the final report as the geom_point were completely overloaded. 
+
+######  External students {-}
+```{r, echo=TRUE}
+
+lm_housing_dnb <- lm(data = housing_dnb, success_rate_pct ~ external_students_rate)
+tab_model(lm_housing_dnb)
+```
+
+###### Half-boarder students {-}
+```{r, echo=TRUE}
+
+lm_housing_dnb <- lm(data = housing_dnb, success_rate_pct ~ half_boarders_students_rate)
+tab_model(lm_housing_dnb)
+```
+
+###### Boarding students {-}
+```{r, echo=TRUE}
+
+lm_housing_dnb <- lm(data = housing_dnb, success_rate_pct ~ boarding_students_rate)
+tab_model(lm_housing_dnb)
+```
+
+##### {.unnumbered}
+The p-value is excellent for each regression but as observed with student housing, the R squared is very low. However, we see some intersting variations in the intercept, a difference of 10%, that could prove to be insightful. To dig deeper into these variations, we performed a cluster analysis.
+
+#### Cluster analysis {.tabset}
+
+We performed the cluster analysis on the session 2021 and 2020 and results are very similar. We decided to leave the two analysis but going through one is sufficient to see the method used and understand the results. 
+
+##### 2021 {-}
+
+To perform the cluster analysis, we filtered the session 2021 and selected the variables `department_fr`, `session`, `school_id`, `external_students_rate`, `half_boarders_students_rate`, `boarding_students_rate` from the joined data set. We then removed th first three and scaled the rest of the data. 
+
+```{r}
+
+clust_housing_dnb <- housing_dnb %>% 
+  filter(session == 2021) %>% 
+  select(department_fr, session, school_id, external_students_rate, half_boarders_students_rate, boarding_students_rate)
+
+clust <- clust_housing_dnb[-c(1,2,3)]
+
+clust <-  scale(clust)
+
+```
+
+The goal of this cluster analysis is to define clusters relative to the offering of each establishment. Through this analysis, we aim to split the establishments by offering. As we have 3 different offering it would not make sense to do too many clusters. To define the right number of cluster for our kmeans clustering, we used the elbow method and concluded that we need 4 clusters. The ratio between the between sum of square and the within sum of square is good at 81.5%.  
+
+```{r, echo=TRUE, warning=FALSE}
+
+fviz_nbclust(clust, kmeans, method = "wss") +
+  geom_vline(xintercept = 4, linetype = 2) + #add line for better visualisation 
+  labs(subtitle = "Elbow method")  #We can determine the optimal number of cluster, 4 clusters seems to be reasonable
+```
+
+```{r, echo=TRUE, warning=FALSE}
+
+# Compute k-means
+km.res <- kmeans(clust, 4, nstart = 25)
+
+# Visualize clusters using factoextra
+fviz_cluster(km.res, clust,
+             ggtheme = theme_ipsum(), 
+             repel = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  scale_color_viridis(discrete = TRUE)
+```
+
+We can see that the four clusters are well defined with cluster one, two and four being differiated by the x-axis and cluster 3 spanning wider on the x-axis and on the y-axis. One can see what the dimensions represent in the graph below. Cluster one and two have higher half boarder rate than group three and especially group four. Group four will represent establishment without any catering offerings for the students. Group three is establishments with at least some of the students in boarding schools.
+```{r, echo=TRUE, warning=FALSE}
+
+fviz_pca_var(PCA(clust, graph = FALSE))
+
+```
+
+To be able to continue our analyisis on the cluster we just measured, we need to implement the data in the main data set. We gathered the cluster data in a new data frame then added the column of cluster to the data set used for the cluster and then joined it with inner_join to the main data set to keep the filter we had applied. 
+```{r, echo=TRUE}
+
+clust1 <- tibble(department_fr = names(km.res$cluster),
+                            cluster = km.res$cluster)
+
+clust_housing_dnb$cluster <- clust1$cluster
+
+housing_dnb_2021 <- inner_join(x = housing_dnb, y = clust_housing_dnb)
+
+```
+
+To analyse the data by cluster we needed to summarise it by cluster. You can see the results in the table below with an added variable `establishment` which is the number of establishment present in each cluster. 
+
+```{r, echo=TRUE}
+clust_h_dnb_2021 <- housing_dnb_2021 %>% 
+  group_by(cluster) %>% 
+  summarise(establishment = n(),
+            external_students_rate = mean(external_students_rate, na.rm = TRUE),
+            half_boarders_students_rate = mean(half_boarders_students_rate, na.rm = TRUE), 
+            boarding_students_rate = mean(boarding_students_rate, na.rm = TRUE),
+            without_pct = mean(without_pct, na.rm = TRUE),
+            AB_pct = mean(AB_pct, na.rm = TRUE),
+            B_pct = mean(B_pct, na.rm = TRUE),
+            TB_pct = mean(TB_pct, na.rm = TRUE),
+            success_rate_pct = mean(success_rate_pct, na.rm = TRUE)) %>% 
+  round(digits = 2)
+
+datatable(clust_h_dnb_2021, options =list(scrollX = "300px"))
+```
+We visually represented the results in a spider chart using the radarchart function.
+
+```{r, echo=TRUE, warning=FALSE, out.width='125%', out.height= '125%'}
+op <- par(mar=c(0, 0, 0, 0))
+
+radar <- clust_h_dnb_2021 %>%
+  select(-c(cluster, establishment))
+
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+ radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= viridis(4, alpha = 1) , pfcol= viridis(4, alpha = 0.2)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4)#, title = "Radar Graph") 
+ # Add a legend
+ legend(x=1.2, y=-0.4, legend = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4"), bty = "n", pch=20 , col=viridis(4) , text.col = "grey", cex=0.4, pt.cex=1)
+
+par(op)
+```
+
+For better clarity, we have also displayed each cluster individually.
+
+```{r, echo=TRUE, out.width='150%', out.height= '150%'}
+# we need to set the margin and create two rows to display the graphs
+op <- par(mar=c(0, 1, 1, 0),mfrow=c(2, 2))
+
+##### Cluster 1
+
+#filter cluster 1 
+radar <- clust_h_dnb_2021 %>% 
+ filter(cluster == 1)%>%
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.267, green = 0.00392, blue = 0.329,  alpha = 0.5) , pfcol= rgb( red = 0.267, green = 0.00392, blue = 0.329,  alpha = 0.2)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 1", cex.main = 1 )
+
+##### Cluster 2
+radar <- clust_h_dnb_2021 %>% 
+ filter(cluster == 2) %>% 
+ select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.192	, green = 0.40784, blue = 0.557,  alpha = 0.5) , pfcol= rgb( red = 0.192	, green = 0.40784, blue = 0.557,  alpha = 0.5)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 2", cex.main = 1 )
+
+
+##### Cluster 3 
+radar <- clust_h_dnb_2021 %>% 
+ filter(cluster == 3) %>% 
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.208	, green = 0.71765, blue = 0.475,  alpha = 0.5) , pfcol= rgb( red = 0.208	, green = 0.71765, blue = 0.475,  alpha = 0.5)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 3", cex.main = 1 )
+
+##### Cluster 4 
+radar <- clust_h_dnb_2021 %>% 
+ filter(cluster == 4) %>% 
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.992	, green = 0.90588, blue = 0.145,  alpha = 0.5), pfcol= rgb( red = 0.992	, green = 0.90588, blue = 0.145,  alpha = 0.5), plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 4", cex.main = 1  )
+
+par(op)
+
+```
+
+The cluster analysis show very interesting results. our intuition from the regression analysis is confirmed as the success rate varies between the four cluster. The highest achieving establishment are the one offering a canteen for lunch where the children stay at school playing with their friends. The lowest success rate is the group going home for lunch where each children is separated and each reality greatly differs. Indeed, some students will have a comforting environment at home whereas other will have a hard time at home or at someone else's home. The difference is also quite marked for some of the distinctions. The achieving rate for the distinction AB and B are rather similar across clusters. Student from an establishment of the fourth cluster are the one achieving the best results with 29.3% of them receiving the distinction TB and only 20.8% not receiving any distinction. The rates are much worse if your school has a boarding offer as 35% of students do not receive any distinction and only 10% get the TB distinction. This could be due that some of them are establishment for elite athletes which start to focus more and more on their sports. 
+
+##### 2020 {-}
+To perform the cluster analysis, we filtered the session 2021 and selected the variables `department_fr`, `session`, `school_id`, `external_students_rate`, `half_boarders_students_rate`, `boarding_students_rate` from the joined data set. We then removed th first three and scaled the rest of the data. 
+
+```{r}
+
+clust_housing_dnb <- housing_dnb %>% 
+  filter(session == 2020) %>% 
+  select(department_fr, session, school_id, external_students_rate, half_boarders_students_rate, boarding_students_rate)
+
+clust <- clust_housing_dnb[-c(1,2,3)]
+
+clust <-  scale(clust)
+
+```
+
+The goal of this cluster analysis is to define clusters relative to the offering of each establishment. Through this analysis, we aim to split the establishments by offering. As we have 3 different offering it would not make sense to do too many clusters. To define the right number of cluster for our kmeans clustering, we used the elbow method. For 2020, the deicision is not as clear as for 2021 and the hesitation is between three and four clusters. As we have four clusters in 2021, we decided to also take four cluster for the 2020 aalysis. The ratio between the between sum of square and the within sum of square is good at 81.1%.  
+
+```{r, echo=TRUE, warning=FALSE}
+
+fviz_nbclust(clust, kmeans, method = "wss") +
+  geom_vline(xintercept = 4, linetype = 2) + #add line for better visualisation 
+  labs(subtitle = "Elbow method")  #We can determine the optimal number of cluster, 4 clusters seems to be reasonable
+```
+
+```{r, echo=TRUE, warning=FALSE}
+
+# Compute k-means
+km.res <- kmeans(clust, 4, nstart = 25)
+
+# Visualize clusters using factoextra
+fviz_cluster(km.res, clust,
+             ggtheme = theme_ipsum(), 
+             repel = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  scale_color_viridis(discrete = TRUE)
+```
+
+We can see that the four clusters are well defined with cluster one, three and four being differiated by the x-axis and cluster two spanning wider on the x-axis and on the y-axis. One can see what the dimensions represent in the graph below. Cluster three and four have higher half boarder rate than group two and especially group one. Group one will represent establishment without any catering offerings for the students. Group two is establishments with at least some of the students in boarding schools.
+```{r, echo=TRUE, warning=FALSE}
+
+fviz_pca_var(PCA(clust, graph = FALSE))
+
+```
+
+To be able to continue our analyisis on the cluster we just measured, we need to implement the data in the main data set. We gathered the cluster data in a new data frame then added the column of cluster to the data set used for the cluster and then joined it with inner_join to the main data set to keep the filter we had applied. 
+```{r, echo=TRUE}
+
+clust1 <- tibble(department_fr = names(km.res$cluster),
+                            cluster = km.res$cluster)
+
+clust_housing_dnb$cluster <- clust1$cluster
+
+housing_dnb_2020 <- inner_join(x = housing_dnb, y = clust_housing_dnb)
+
+```
+
+To analyse the data by cluster we needed to summarise it by cluster. You can see the results in the table below with an added variable `establishment` which is the number of establishment present in each cluster. 
+
+```{r, echo=TRUE}
+clust_h_dnb_2020 <- housing_dnb_2020 %>% 
+  group_by(cluster) %>% 
+  summarise(establishment = n(),
+            external_students_rate = mean(external_students_rate, na.rm = TRUE),
+            half_boarders_students_rate = mean(half_boarders_students_rate, na.rm = TRUE), 
+            boarding_students_rate = mean(boarding_students_rate, na.rm = TRUE),
+            without_pct = mean(without_pct, na.rm = TRUE),
+            AB_pct = mean(AB_pct, na.rm = TRUE),
+            B_pct = mean(B_pct, na.rm = TRUE),
+            TB_pct = mean(TB_pct, na.rm = TRUE),
+            success_rate_pct = mean(success_rate_pct, na.rm = TRUE)) %>% 
+  round(digits = 2)
+
+datatable(clust_h_dnb_2020, options =list(scrollX = "300px"))
+```
+We visually represented the results in a spider chart using the radarchart function.
+
+```{r, echo=TRUE, warning=FALSE, out.width='125%', out.height= '125%'}
+op <- par(mar=c(0, 0, 0, 0))
+
+radar <- clust_h_dnb_2020 %>%
+  select(-c(cluster, establishment))
+
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+ radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= viridis(4, alpha = 1) , pfcol= viridis(4, alpha = 0.2)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4)#, title = "Radar Graph") 
+ # Add a legend
+ legend(x=1.2, y=-0.4, legend = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4"), bty = "n", pch=20 , col=viridis(4) , text.col = "grey", cex=0.4, pt.cex=1)
+
+par(op)
+```
+
+For better clarity, we have also displayed each cluster individually.
+
+```{r, echo=TRUE, out.width='150%', out.height= '150%'}
+# we need to set the margin and create two rows to display the graphs
+op <- par(mar=c(0, 1, 1, 0),mfrow=c(2, 2))
+
+##### Cluster 1
+
+#filter cluster 1 
+radar <- clust_h_dnb_2020 %>% 
+ filter(cluster == 1)%>%
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.267, green = 0.00392, blue = 0.329,  alpha = 0.5) , pfcol= rgb( red = 0.267, green = 0.00392, blue = 0.329,  alpha = 0.2)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 1", cex.main = 1 )
+
+##### Cluster 2
+radar <- clust_h_dnb_2020 %>% 
+ filter(cluster == 2) %>% 
+ select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.192	, green = 0.40784, blue = 0.557,  alpha = 0.5) , pfcol= rgb( red = 0.192	, green = 0.40784, blue = 0.557,  alpha = 0.5)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 2", cex.main = 1 )
+
+
+##### Cluster 3 
+radar <- clust_h_dnb_2020 %>% 
+ filter(cluster == 3) %>% 
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.208	, green = 0.71765, blue = 0.475,  alpha = 0.5) , pfcol= rgb( red = 0.208	, green = 0.71765, blue = 0.475,  alpha = 0.5)  , plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 3", cex.main = 1 )
+
+##### Cluster 4 
+radar <- clust_h_dnb_2020 %>% 
+ filter(cluster == 4) %>% 
+  select(-c(cluster, establishment))
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+radar <- rbind(rep(100,50) , rep(0,50) , radar)
+# plot the radar chart with the right color from viridis 
+radarchart(radar, axistype=1 , 
+    #custom polygon
+    pcol= rgb( red = 0.992	, green = 0.90588, blue = 0.145,  alpha = 0.5), pfcol= rgb( red = 0.992	, green = 0.90588, blue = 0.145,  alpha = 0.5), plwd=1 , plty=1,
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,25), cglwd=0.4, calcex = 0.4,
+    #custom labels
+    vlcex=0.4, title = "Cluster 4", cex.main = 1  )
+
+par(op)
+
+```
+
+The cluster analysis show very interesting results. Our intuition from the regression analysis is confirmed as the success rate varies between the four cluster. The highest achieving establishment are the one offering a canteen for lunch where the children stay at school playing with their friends. The lowest success rate is the group going home for lunch where each children is separated and each reality greatly differs. Indeed, some students will have a comforting environment at home whereas other will have a hard time at home or at someone else's home. The difference is also quite marked for some of the distinctions. The achieving rate for the distinction AB and B are rather similar across clusters. Student from an establishment of the first cluster are the one achieving the best results with 33.3% of them receiving the distinction TB and only 17.9% not receiving any distinction. The rates are much worse if your school has a boarding offer as 26.4% of students do not receive any distinction and only 14.7% get the TB distinction. This could be due that some of them are establishment for elite athletes which start to focus more and more on their sports. 
+
+### {-}
+
+From this analysis, we can conclude that having lunch and sleeping at school or at home does have a small influence on the results of the Dimplome National du Brevet. Better results are achieved students in establishment offering the lunch. Going home for lunch does seem to hinder academic success. Boarding schools might not the best choice for students aiming for top honours. 
+
+
+
+
+### Single-parent families.
+
+The first analysis is at the national level.We want to use two plot types: a bar plot that represent total single parent families and a line plot to represent the success rate. Both plots use session for x-axis. Since the range of the success_rate plot is much lower than the single parent families plot, the use of a secondary y-axis with an adapted scale is recommended.
+```{r , echo=TRUE, warning=FALSE}
+sp <- single_parent%>%
+  select("session", "department_fr", "sing_par")
+singpar_vs_dnb <- left_join(dnb_results_dep, sp, by = c("department_fr","session"))
+```
+
+
+```{r , echo=TRUE, warning=FALSE}
+
+sp_vs_dnb <- singpar_vs_dnb%>%
+  select(success_rate_pct, session, sing_par, department_fr)%>%
+  group_by(session)%>%
+  summarise(success_rate_pct = mean(success_rate_pct), 
+            sing_par = sum (sing_par, na.rm = TRUE)) %>%
+  ggplot()+
+  geom_col(aes(x = session, y = sing_par)) +
+  geom_line(aes(x = session, y = 30000*success_rate_pct), size = 1, color="blue", group = 1) +
+  scale_y_continuous(sec.axis = sec_axis(~./30000, name = "Success rate")) +
+  labs( x = "Session", y = "Single parent families" )+
+  theme_ipsum()
+sp_vs_dnb
+```
+Despite the constant increase in the number of parental families over time,
+DNB's results do not appear to be influenced too much by these. Indeed, logically, the more the number of single parent families increase, the more the success rate should decrease. However, from 2007 to 2017, sing_par and success_rate both increased, and from 2017 to 2019, although sing_par continued to increase, the success_rate suffered a drop from 88.74% to 86.14%. 
+
+We now want to do an analysis of single parent families against the results
+of DNB at the departmental level. We will therefore do a linear regression and use singpar_vs_dnb, a dataframe showing the results of DNB and sing_par par department_fr.
+```{r , echo=TRUE}
+ggplot(data = singpar_vs_dnb,
+       mapping = aes(x = sing_par, y = success_rate_pct)) +
+  labs(title = "Single-parent families VS success rate", x = "sing_par", y = "Success rate", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)+
+  theme_ipsum()
+
+regression_sp <- lm(data = singpar_vs_dnb, success_rate_pct ~ sing_par)
+tab_model(regression_sp)
+```
+The 34 missing values are the overseas departments, which we did not have the information for success_rate. Rsquared is equal to 0.009, and p_value is equal to 0.0203 but according to the significance code, it is not significant. Since variance is not explained, the model does not fit our data. Therefore, success rate of a department does not depend on the number of single parent families in the department.
+
+## Has the COVID-19 pandemic impacted student performance?
+
+In order to observe the influence of Covid on student performance, we are going to investigate the relationship between incidence rate and success rate of DNB in every department in France. To do so, we first have to do a left join between covid_in_school and dnb_results in order to create a new data frame called covid_vs_dnb, and then create a simple linear regression model.
+```{r , echo=TRUE}
+c <- c("2020", "2021")
+d<- dnb_results%>%
+  select("session", "department_fr", "success_rate_pct")%>%
+  filter(session %in% c)%>%
+  group_by(department_fr, session)%>%
+  summarise(success_rate_pct = mean(success_rate_pct))
+co<- covid_in_schools%>%
+  select("session", "department_fr", "incidence_rate")%>%
+  group_by(department_fr, session)%>%
+  summarise(incidence_rate = mean(incidence_rate))
+covid_vs_dnb <- inner_join(d, co, by = c("session", "department_fr"))
+```
+
+
+```{r , echo=TRUE}
+ggplot(data = covid_vs_dnb,
+       mapping = aes(x = incidence_rate, y = success_rate_pct)) +
+  labs(title = "incidence-rate of Covid cases VS success rate", x = "Incidence-rate", y = "Success rate", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+
+regression <- lm(data = covid_vs_dnb, success_rate_pct ~ incidence_rate)
+tab_model(regression)
+
+```
+According to the residual results, the regression is more precise for the high values than the low values. The p-value is close to 0, therefore significant. Then, the model seems usable. However, R squared is around 20% of the variation within the incidence rate, meaning  it explains only 20% of the variation. Therefore, the result here is not very conclusive.
+
+We then tried to do a linear regression for 2020 and 2021 separately because we thought that the 2020 low values could have distort our model.
+
+#### {.tabset .unnumbered}
+
+##### 2020 {-}
+```{r , echo=TRUE}
+covid_vs_dnb2020 <- inner_join(d, co, by = c("session", "department_fr"))%>%
+  filter(session ==2020)
+ggplot(data = covid_vs_dnb2020,
+       mapping = aes(x = incidence_rate, y = success_rate_pct)) +
+  labs(title = "incidence-rate of Covid cases VS success rate", x = "Incidence-rate", y = "Success rate", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression2020 <- lm(data = covid_vs_dnb2020, success_rate_pct ~ incidence_rate)
+tab_model(regression2020)
+```
+
+##### 2021 {-}
+```{r , echo=TRUE}
+covid_vs_dnb2021 <- inner_join(d, co, by = c("session", "department_fr"))%>%
+  filter(session ==2021)
+ggplot(data = covid_vs_dnb2021,
+       mapping = aes(x = incidence_rate, y = success_rate_pct)) +
+  labs(title = "incidence-rate of Covid cases VS success rate", x = "Incidence-rate", y = "Success rate", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression2021 <- lm(data = covid_vs_dnb2021, success_rate_pct ~ incidence_rate)
+tab_model(regression2021)
+```
+
+#### {-}
+
+From these regression results, we cannot use these models to explain the influence of the incidence rate and the success rate. Consequently, covid seems to not have a big impact on the dnb results. This finding is not so surprising because of the implementation of continuous assessment. In fact, according to the article by l'Etudiant (Cojean, 2020), the French government has taken special measures for DNB exams following Covid: since 2020, graduates were awarded on the basis of continuous assessment, so no final tests.
+
+Since our linear regressions were inconclusive, the next step would be to observe whether or not covid influenced the attribution of the distinction. It can be hypothesized that given the continuous assessment, the rating has been
+more lenient. This would therefore lead to better results, thus more students
+admitted or with mentions.
+In view of the results for 2020, which did not vary enormously, we will mainly
+focus on the attribution of distinction in 2021.To do so, we create covid_vs_dnbmention.
+```{r , echo=TRUE}
+m<- dnb_results%>%
+  select("session", "department_fr", "TB_pct", "B_pct", "AB_pct", "admitted_without")%>%
+  filter(session == 2021)%>%
+  group_by(department_fr, session)%>%
+  summarise(TB_pct=mean(TB_pct), B_pct=mean(B_pct), AB_pct=mean(AB_pct), admitted_without=mean(admitted_without))
+co<- covid_in_schools%>%
+  select("session", "department_fr", "incidence_rate")%>%
+  group_by(department_fr, session)%>%
+  summarise(incidence_rate = mean(incidence_rate))
+covid_vs_dnbmention <- inner_join(m, co, by = c("session", "department_fr"))
+```
+
+#####  Linear regression for each distinction {.tabset .unnumbered}
+
+######  TB {-}
+```{r , echo=TRUE}
+ggplot(data = covid_vs_dnbmention,
+         mapping = aes(x = incidence_rate, y = TB_pct)) +
+  labs(title = 'Incidence-rate of Covid cases VS Distinction "Très Bien"', x = "Incidence-rate", y = "Percentage of TB", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression <- lm(data = covid_vs_dnbmention, TB_pct ~ incidence_rate)
+tab_model(regression)
+```
+
+######  B {-}
+```{r , echo=TRUE}
+ggplot(data = covid_vs_dnbmention,
+         mapping = aes(x = incidence_rate, y = B_pct)) +
+  labs(title = 'Incidence-rate of Covid cases VS Distinction "Bien"', x = "Incidence-rate", y = "Percentage of B", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression <- lm(data = covid_vs_dnbmention, B_pct ~ incidence_rate)
+tab_model(regression)
+```
+
+######  AB {-}
+```{r , echo=TRUE}
+ggplot(data = covid_vs_dnbmention,
+         mapping = aes(x = incidence_rate, y = AB_pct)) +
+  labs(title = 'incidence-rate of Covid cases VS Distinction "Assez Bien"', x = "Incidence-rate", y = "Percentage of AB", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression <- lm(data = covid_vs_dnbmention, AB_pct ~ incidence_rate)
+tab_model(regression)
+```
+
+######  Without Distinction {-}
+```{r , echo=TRUE}
+ggplot(data = covid_vs_dnbmention,
+       mapping = aes(x = incidence_rate, y = admitted_without)) +
+  labs(title = "incidence-rate of Covid cases VS Admitted Without Distinction", x = "Incidence-rate", y = "Percentage of students admitted without distinction", ) +
+  geom_point() +
+  geom_smooth(method = lm,
+              color = "blue",
+              size = 0.3)
+regression <- lm(data = covid_vs_dnbmention, admitted_without ~ incidence_rate )
+tab_model(regression)
+```
+
+##### {-}
+
+In view of the various linear regressions, as covid cases increased, the academic government seemed to have granted more easily the highest distinction and without distinction. In fact, the linear regression of distinction TB and admitted_without indicate moderate positive correlations. This therefore leads to think that the grading was more lenient for the departments where covid was very present. Nevertheless, it is difficult to interpret these results as they are statistically not significant and all Rsquared are extremely poor.
+
+Since the linear regression does not allow us to say much about the influence of Covid on student success, we decided to do an analysis from clusters and see if we can get anything interesting results out of it.
+```{r , echo=TRUE, warning=FALSE}
+cluster1<- covid_vs_dnb2021
+cluster <- cluster1[-c(1,2)]
+row.names(cluster) <- as.vector(t(cluster1[,1]))
+cluster <- scale(cluster)
+
+
+fviz_nbclust(cluster, kmeans, method = "wss") +
+  geom_vline(xintercept = 5, linetype = 2) +
+  labs(subtitle = "Elbow method")
+km.res1 <- kmeans(cluster, 5, nstart = 25) #77.4%
+fviz_cluster(km.res1, cluster,
+             ggtheme = theme_ipsum(),
+             repel = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  scale_color_viridis(discrete = TRUE)
+```
+We see on the plot that the success rates do not differ too much between the clusters despite the difference of incidence rate. So, as seen in linear regression, covid cases did not affect dnb results.
+
+```{r}
+clust1 <- tibble(department_fr = names(km.res1$cluster),
+                            cluster = km.res1$cluster)
+
+clust_cov_dnb <- inner_join(x = dnb_results_dep, y = clust1)
+
+
+clust_cov_dnb <- clust_cov_dnb %>% 
+  filter(cluster %in% c(1,3)) %>% 
+  group_by(cluster, session) %>% 
+  summarise(department = n(),
+            without_pct = mean(without_pct, na.rm = TRUE),
+            AB_pct = mean(AB_pct, na.rm = TRUE),
+            B_pct = mean(B_pct, na.rm = TRUE),
+            TB_pct = mean(TB_pct, na.rm = TRUE),
+            success_rate_pct = mean(success_rate_pct, na.rm = TRUE)) %>% 
+  round(digits = 2)
+  
+datatable(clust_cov_dnb, options =list(scrollX = "300px"))
+```
+
+
+```{r}
+clust_cov_dnb <- clust_cov_dnb %>%   
+  pivot_longer(c(contains("pct")), 
+               names_to = "Mention_type",
+               values_to = "Rate")
+
+```
+
+
+```{r, echo=TRUE, warning=FALSE, out.width="100%", out.height="30%"}
+p <- clust_cov_dnb %>% 
+  filter(cluster == 1) %>% 
+  ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
+  geom_line()+
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Cluster 1", x = "Session", y = "Rate in %" ) +
+    theme_ipsum()
+
+ggplotly(p, tooltip = c("x" ,"y"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width="100%", out.height="30%"}
+p <- clust_cov_dnb %>% 
+  filter(cluster == 3) %>% 
+  ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
+  geom_line()+
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Cluster 3", x = "Session", y = "Rate in %" ) +
+    theme_ipsum()
+
+ggplotly(p, tooltip = c("x" ,"y"))
+
+
+```
