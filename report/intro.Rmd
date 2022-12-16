@@ -5,16 +5,12 @@ source(here::here("scripts/setup.R"))
 ```
 ## Background and motivation
 
-Human resources are the most valuable asset in any country¹. They are the main reason behind the success or the failure of any organization. In fact, having an educated and competent manpower is the key driver to economic and social development. In this context, the importance of academic education has become undeniable. Therefore, it is crucial to invest money and time in order to study students’ academic performance and figure out effective ways to improve it. 
+Human resources are the most valuable asset in any country (Peretti, 2004). They are the main reason behind the success or the failure of any organization. In fact, having an educated and competent manpower is the key driver to economic and social development. In this context, the importance of academic education has become undeniable. Therefore, it is crucial to invest money and time in order to study students’ academic performance and figure out effective ways to improve it. 
 
-Given the importance of the topic, it has been given particular attention in past research. In fact, many studies have been conducted in order to analyze the factors impacting students’ academic performance. While some studies focused on the psychological variables, such as Franck Amadieu & André Tricot’s research², other researchers have been interested in the impact of other elements such as mobility ³, gender and other socio-economic factors on students’ academic success.
+Given the importance of the topic, it has been given particular attention in past research. In fact, many studies have been conducted in order to analyze the factors impacting students’ academic performance. While some studies focused on the psychological variables, such as Franck Amadieu & André Tricot’s research (Amadieu and Tricot, 2022), other researchers have been interested in the impact of other elements such as mobility (Richard, 2009), gender and other socio-economic factors on students’ academic success.
 
 Many reasons motivated us to choose this topic of research. In fact, as students, we are very passionate about the educational field. Thus, we want to provide through this project a detailed analysis that can be used as a reference guide for leaders working in the educational field. Mainly, we want to help schools and universities to have a better understanding of the factors influencing students’ academic performance in order to improve their decision-making processes, students’ success rate and eventually their overall organization.
 
-Source: 
-¹ Gestion des ressources humaines,Jean-Marie Peretti, 2004.
-² Psychological factors which have an effect on student success ,2015.
-³ La migration pour études : Regards d’intervenants sur l’accueil et l’intégration des nouveaux étudiants »,2009.
 
 ## Project objectives
 

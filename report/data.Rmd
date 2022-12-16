@@ -623,7 +623,7 @@ covid_in_schools <- covid_in_schools %>%
 
 ```
 
-We can see the final table *covid_in_schools* below. 
+We can see the final table **covid_in_schools** below. 
 ```{r, warning=FALSE}
 datatable(covid_in_schools, options =list(scrollX = "300px"))
 ```

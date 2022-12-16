@@ -4,26 +4,42 @@
 source(here::here("scripts/setup.R"))
 ```
 
+In the first part of our project, we focused on exploring our data. We created several charts; bar plots, box plots, maps etc.; to have a general comprehension of our data and retrieve the general tendencies.
 
+This part of the project will be more focused on finding answers in order to draw conclusions about the evolution of the French secondary students’ performance and identifying the variables that have impacted it the most.
 
 ## What is the evolution of student performance over time and across the different regions/departments of France?
 
-```{r, echo = TRUE, warning = FALSE, out.width='100%', out.height= '50%'}
+We have seen previsouly that French secondary students’ performance is showing a positive evolution. The number of admissions has been increasing since 2006, it is 23.15% higher in 2020 compared to 2006. Not only the overall success rate, but also the distinctions that students get have changed between 2006 and 2021. During this period, more and more students passed with a TB distinction (23.98% in 2021), compared to only 4.49 % in 2006. In the same way, the rate of students passing with no mention decreased remarkably. It was 53.85% in 2011, compared to only 25.11% in 2021.
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 
 p <- France_results %>% 
-  ggplot(aes(x = session, y = Number_of_students, group = Candidates, color = Candidates))+
+  ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
   geom_line()+
   scale_color_viridis(discrete = TRUE) +
     ggtitle("National DNB statistics") +
     theme_ipsum() +
-    ylab("Number of students")
+    ylab("Rate in %")
 
 ggplotly(p, tooltip = c("x" ,"y"))
 
 ```
 
-**talk about the new reform** and sumarise what we have seen in eda 
+**2017: A drastic improvement in students’ performance was recorded in 2017.**
 
+Students’ performance has drastically improved in 2017, recording a success rate of 88.74% for the first time since 2006. Also, the number of admissions with a TB distinction expanded during that year, reaching 25.12% compared to only 4.49% in 2006. In the same context, admissions without a mention reached their lowest point so far, with a rate of 23.40%.
+
+Based on further literature research, we discovered that this major shift in the French secondary students’ performance has to do with the reform “learn better to succeed better”, that was brought into force at the beginning of the 2016 school year (accounted for session 2017 in our analysis) by the minister of education Najat Vallaud-Belkacem. This reform is articulated around two main points: redefining the common core of knowledge and skills as well as the content of the programs to make them more comprehensible, more progressive, and more coherent. The focus was mainly on these three areas: French, mathematics, and history. Moreover, teachers had to devote 20% of the class time to new pedagogical methods such as the practice of multidisciplinary teaching, providing personalized support, and engaging students in collaborative approaches.
+
+**2019: Sudden decrease in students’ performance**
+
+Students’ performance deteriorated sharply in 2019. The rate of admissions with a TB distinction dropped remarkably, passing from 25.12% in 2017, to 19.66% in 2019. Accordingly, the number of admissions without a mention increased, reaching 30.63% compared to 23.40% in 2017.
+
+**2020: students’ performance reached its peak **
+
+In 2020, students’ performance has reached its peak. 90.19% of French secondary school students succeeded that year, compared to only 86.14% in 2019. On one hand, the number of admissions with a TB mention improved drastically compared to 2019, with a rate of 28.45%. On the other hand, the admissions without a mention registered a rate of 21.07%, being the lowest rate recorded since 2006.
+
+Based on our research, we assume that this unique performance has to do with the decision of exams cancellation that was taken by the education minister Jean-Michel Blanquer in 2020, due to the corona virus pandemic: France canceled traditional end of secondary school exams in favor of continuous assessment. So, instead of sit-down tests in the summer, students received an average score, for each subject, based on the grades scored in tests and homework throughout the academic year.
 
 
 
@@ -58,7 +74,7 @@ p <-   ggplot() +
   scale_fill_viridis(name = "Average sucess rate, 2006-2021")+
   labs(x = "", 
        y = "", 
-       title = "Average success rate vs labelled Establishemnt") +
+       title = "Labelled Establishemnt vs average success rate") +
   map_theme
   
 ggplotly(p, tooltip = c("text2", "text") ) #due to a strange behavior of ggplotly we must add the "text" variable in the tooltip otherwise the success rate map is only partially displayed. 
@@ -85,13 +101,16 @@ est_24_dnb <- est_24_dnb %>%
 
 To have a visual representation of the possible relation between the success rate and the labelling, we used geom_bin_2d with `est_24` as factor for the x-axis and `success_rate_pct`for the y-axis. We used this way of plotting to display in a more visual way the dispersion of the establishments on the y-axis. To do the linear regression we used the lm function. 
 
-```{r, echo=TRUE, warning=FALSE}
-ggplot(data = est_24_dnb )+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- ggplot(data = est_24_dnb )+
 geom_bin_2d( aes( x = as.factor(est_24), y = success_rate_pct))+
   labs(x = "est_24")+
   theme_ipsum()+
   scale_fill_viridis("Number of establishment")
 
+ggplotly(p, tooltip = c("y", "fill"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 lm_est_24_dnb <- lm(data = est_24_dnb, success_rate_pct ~ est_24)
 tab_model(lm_est_24_dnb)
 
@@ -102,26 +121,31 @@ We decided to continue our analysis and proceeded to perform a linear regression
 
 ####  Linear regression for each mention {.tabset .unnumbered}
 #####  Without {-}
-```{r, echo=TRUE, warning=FALSE}
-ggplot(data = est_24_dnb )+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- ggplot(data = est_24_dnb )+
 geom_bin_2d( aes( x = as.factor(est_24), y = without_pct))+
   labs(x = "est_24")+
   theme_ipsum()+
   scale_fill_viridis("Number of establishment")
-
+ggplotly(p, tooltip = c("y", "fill"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 lm_est_24_dnb <- lm(data = est_24_dnb, without_pct ~ est_24)
 tab_model(lm_est_24_dnb)
 
 ```
 
 #####  AB {-}
-```{r, echo=TRUE, warning=FALSE}
-ggplot(data = est_24_dnb )+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- ggplot(data = est_24_dnb )+
 geom_bin_2d( aes( x = as.factor(est_24), y = AB_pct))+
   labs(x = "est_24")+
   theme_ipsum()+
   scale_fill_viridis("Number of establishment")
 
+ggplotly(p, tooltip = c("y", "fill"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 lm_est_24_dnb <- lm(data = est_24_dnb, AB_pct ~ est_24)
 tab_model(lm_est_24_dnb)
 
@@ -129,26 +153,32 @@ tab_model(lm_est_24_dnb)
 
 
 #####  B {-}
-```{r, echo=TRUE, warning=FALSE}
-ggplot(data = est_24_dnb )+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- ggplot(data = est_24_dnb )+
 geom_bin_2d( aes( x = as.factor(est_24), y = B_pct))+
   labs(x = "est_24")+
   theme_ipsum()+
   scale_fill_viridis("Number of establishment")
 
+ggplotly(p, tooltip = c("y", "fill"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 lm_est_24_dnb <- lm(data = est_24_dnb, B_pct ~ est_24)
 tab_model(lm_est_24_dnb)
 
 ```
 
 ##### TB {-}
-```{r, echo=TRUE, warning=FALSE}
-ggplot(data = est_24_dnb )+
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
+p <- ggplot(data = est_24_dnb )+
 geom_bin_2d( aes( x = as.factor(est_24), y = TB_pct))+
   labs(x = "est_24")+
   theme_ipsum()+
   scale_fill_viridis("Number of establishment")
 
+ggplotly(p, tooltip = c("y", "fill"))
+```
+```{r, echo=TRUE, warning=FALSE, out.width='100%', out.height= '50%'}
 lm_est_24_dnb <- lm(data = est_24_dnb, TB_pct ~ est_24)
 tab_model(lm_est_24_dnb)
 
@@ -170,7 +200,7 @@ dnb_prep_housing <- dnb_results %>%
 housing_dnb <- inner_join(x = student_housing , y = dnb_prep_housing, by = c("session", "school_id", "department_fr"))
 ```
 
-It is to note that the number of students between `students_secondary_education` and `registered` does not match as students of the four years of college are accounted for in `students_secondary_education`. 
+It is to be noted that the number of students between `students_secondary_education` and `registered` does not match as students of the four years of college are accounted for in `students_secondary_education`. 
 
 #### Linear regression
 
@@ -183,7 +213,8 @@ corrplot(cor(housing_dnb[c(17:19)]), col = viridis(256))
 The correlation is unsurprisingly very high as if for example one establishment offers a meal for dinner most of the students will take it and very few will eat at home. Therefore, we will use single linear regression to asses whether there exist a link between student results and their habitual place of eating and living. 
 
 #####  Linear regression for each offering {.tabset .unnumbered}
-We simply used the lm function for each offering. We did not include graphs in the final report as the geom_point were completely overloaded. 
+
+We simply used the lm function for each offering. We did not include graphs in the final report as they were completely overloaded. 
 
 ######  External students {-}
 ```{r, echo=TRUE}
@@ -251,14 +282,14 @@ fviz_cluster(km.res, clust,
   scale_color_viridis(discrete = TRUE)
 ```
 
-We can see that the four clusters are well defined with cluster one, two and four being differiated by the x-axis and cluster 3 spanning wider on the x-axis and on the y-axis. One can see what the dimensions represent in the graph below. Cluster one and two have higher half boarder rate than group three and especially group four. Group four will represent establishment without any catering offerings for the students. Group three is establishments with at least some of the students in boarding schools.
+We can see that the four clusters are well defined with cluster one, two and four being differentiated by the x-axis and cluster 3 spanning wider on the x-axis and on the y-axis. One can see what the dimensions represent in the graph below. Cluster one and two have higher half boarder rate than group three and especially group four. Group four will represent establishment without any catering offerings for the students. Group three is establishments with at least some of the students in boarding schools.
 ```{r, echo=TRUE, warning=FALSE}
 
 fviz_pca_var(PCA(clust, graph = FALSE))
 
 ```
 
-To be able to continue our analyisis on the cluster we just measured, we need to implement the data in the main data set. We gathered the cluster data in a new data frame then added the column of cluster to the data set used for the cluster and then joined it with inner_join to the main data set to keep the filter we had applied. 
+To be able to continue our analyisis on the cluster we just measured, we need to implement the data in the main data set. We gathered the cluster results in a new data frame then added the column of cluster to the data set used for the cluster and then joined it with inner_join to the main data set to keep the filter we had applied. 
 ```{r, echo=TRUE}
 
 clust1 <- tibble(department_fr = names(km.res$cluster),
@@ -385,7 +416,9 @@ par(op)
 
 ```
 
-The cluster analysis show very interesting results. our intuition from the regression analysis is confirmed as the success rate varies between the four cluster. The highest achieving establishment are the one offering a canteen for lunch where the children stay at school playing with their friends. The lowest success rate is the group going home for lunch where each children is separated and each reality greatly differs. Indeed, some students will have a comforting environment at home whereas other will have a hard time at home or at someone else's home. The difference is also quite marked for some of the distinctions. The achieving rate for the distinction AB and B are rather similar across clusters. Student from an establishment of the fourth cluster are the one achieving the best results with 29.3% of them receiving the distinction TB and only 20.8% not receiving any distinction. The rates are much worse if your school has a boarding offer as 35% of students do not receive any distinction and only 10% get the TB distinction. This could be due that some of them are establishment for elite athletes which start to focus more and more on their sports. 
+The cluster analysis show very interesting results. Our intuition from the regression analysis is confirmed as the success rate varies slightly between the four cluster. The highest achieving establishment are the one offering a canteen for lunch where the children stay at school playing with their friends. The lowest success rate is the group going home for lunch where each children is separated and each reality greatly differs. Indeed, some students will have a comforting environment at home whereas other will have a hard time at home or at someone else's home. 
+
+The difference is more significant for some of the distinctions. The achieving rate for the distinction AB and B are rather similar across clusters. Student from an establishment of the fourth cluster are the one achieving the best results with 29.3% of them receiving the distinction TB and only 20.8% not receiving any distinction. The rates are much worse if your school has a boarding offer as 35% of students do not receive any distinction and only 10% get the TB distinction. This could be due that some of them are establishment for elite athletes which start to focus more and more on their sports. 
 
 ##### 2020 {-}
 To perform the cluster analysis, we filtered the session 2021 and selected the variables `department_fr`, `session`, `school_id`, `external_students_rate`, `half_boarders_students_rate`, `boarding_students_rate` from the joined data set. We then removed th first three and scaled the rest of the data. 
@@ -579,7 +612,7 @@ singpar_vs_dnb <- left_join(dnb_results_dep, sp, by = c("department_fr","session
 
 ```{r , echo=TRUE, warning=FALSE}
 
-sp_vs_dnb <- singpar_vs_dnb%>%
+singpar_vs_dnb%>%
   select(success_rate_pct, session, sing_par, department_fr)%>%
   group_by(session)%>%
   summarise(success_rate_pct = mean(success_rate_pct), 
@@ -590,7 +623,7 @@ sp_vs_dnb <- singpar_vs_dnb%>%
   scale_y_continuous(sec.axis = sec_axis(~./30000, name = "Success rate")) +
   labs( x = "Session", y = "Single parent families" )+
   theme_ipsum()
-sp_vs_dnb
+
 ```
 Despite the constant increase in the number of parental families over time,
 DNB's results do not appear to be influenced too much by these. Indeed, logically, the more the number of single parent families increase, the more the success rate should decrease. However, from 2007 to 2017, sing_par and success_rate both increased, and from 2017 to 2019, although sing_par continued to increase, the success_rate suffered a drop from 88.74% to 86.14%. 
@@ -614,7 +647,7 @@ The 34 missing values are the overseas departments, which we did not have the in
 
 ## Has the COVID-19 pandemic impacted student performance?
 
-In order to observe the influence of Covid on student performance, we are going to investigate the relationship between incidence rate and success rate of DNB in every department in France. To do so, we first have to do a left join between covid_in_school and dnb_results in order to create a new data frame called covid_vs_dnb, and then create a simple linear regression model.
+In order to observe the influence of Covid on student performance, we are going to investigate the relationship between incidence rate and success rate of DNB in every department in France. To do so, we first had to do a left join between covid_in_school and dnb_results in order to create a new data frame called covid_vs_dnb, and then create a simple linear regression model.
 ```{r , echo=TRUE}
 c <- c("2020", "2021")
 d<- dnb_results%>%
@@ -643,9 +676,9 @@ regression <- lm(data = covid_vs_dnb, success_rate_pct ~ incidence_rate)
 tab_model(regression)
 
 ```
-According to the residual results, the regression is more precise for the high values than the low values. The p-value is close to 0, therefore significant. Then, the model seems usable. However, R squared is around 20% of the variation within the incidence rate, meaning  it explains only 20% of the variation. Therefore, the result here is not very conclusive.
+According to the residual results, the regression is more precise for the high values than the low values. The p-value is close to 0, therefore significant. The model seems usable. However, R squared is around 0.2, meaning that it explains only 20% of the variation of the success rate. Therefore, the result here are not very conclusive.
 
-We then tried to do a linear regression for 2020 and 2021 separately because we thought that the 2020 low values could have distort our model.
+We then tried to do a linear regression for 2020 and 2021 separately because we thought that the 2020 low values could have distorted our model.
 
 #### {.tabset .unnumbered}
 
@@ -681,13 +714,13 @@ tab_model(regression2021)
 
 #### {-}
 
-From these regression results, we cannot use these models to explain the influence of the incidence rate and the success rate. Consequently, covid seems to not have a big impact on the dnb results. This finding is not so surprising because of the implementation of continuous assessment. In fact, according to the article by l'Etudiant (Cojean, 2020), the French government has taken special measures for DNB exams following Covid: since 2020, graduates were awarded on the basis of continuous assessment, so no final tests.
+From these regression results, we see that we cannot use these models to explain the influence of the incidence rate and the success rate. Consequently, covid seems to not have a big impact on the dnb results. This finding is not so surprising because of the implementation of continuous assessment. In fact, according to the article by l'Etudiant (Cojean, 2020), the French government has taken special measures for DNB exams following Covid: since 2020, graduates were awarded on the basis of continuous assessment, meaning no final exam.
 
 Since our linear regressions were inconclusive, the next step would be to observe whether or not covid influenced the attribution of the distinction. It can be hypothesized that given the continuous assessment, the rating has been
 more lenient. This would therefore lead to better results, thus more students
-admitted or with mentions.
-In view of the results for 2020, which did not vary enormously, we will mainly
-focus on the attribution of distinction in 2021.To do so, we create covid_vs_dnbmention.
+admitted with mentions.
+In view of the results for 2020, which did not vary greatly, we will mainly
+focus on the attribution of distinction in 2021.To do so, we created covid_vs_dnbmention.
 ```{r , echo=TRUE}
 m<- dnb_results%>%
   select("session", "department_fr", "TB_pct", "B_pct", "AB_pct", "admitted_without")%>%
@@ -759,7 +792,7 @@ tab_model(regression)
 
 In view of the various linear regressions, as covid cases increased, the academic government seemed to have granted more easily the highest distinction and without distinction. In fact, the linear regression of distinction TB and admitted_without indicate moderate positive correlations. This therefore leads to think that the grading was more lenient for the departments where covid was very present. Nevertheless, it is difficult to interpret these results as they are statistically not significant and all Rsquared are extremely poor.
 
-Since the linear regression does not allow us to say much about the influence of Covid on student success, we decided to do an analysis from clusters and see if we can get anything interesting results out of it.
+Since the linear regression does not allow us to say much about the influence of Covid on student success, we decided to do an analysis from clusters and see if we can get anything interesting results out of it. As for the cluster analysis performed for student_housing we first selected the variables, `success_rate_pct`and `incidence_rate` in this case. Then we found the right number of clusters using the elbow method and then performed a kmean cluster analysis. 
 ```{r , echo=TRUE, warning=FALSE}
 cluster1<- covid_vs_dnb2021
 cluster <- cluster1[-c(1,2)]
@@ -777,9 +810,9 @@ fviz_cluster(km.res1, cluster,
   scale_fill_viridis(discrete = TRUE)+
   scale_color_viridis(discrete = TRUE)
 ```
-We see on the plot that the success rates do not differ too much between the clusters despite the difference of incidence rate. So, as seen in linear regression, covid cases did not affect dnb results.
+We end up with five cluster with cluster 1 having the highest success rate and some of the smallest incidence rate and cluster 3 having the highest incidence rate some of the worst success rate. We will focus on these two clusters as they are the main outliers. To do the analysis, we included the clusters in the data set dnb_results_dep and summarized the data by cluster. 
 
-```{r}
+```{r, echo=TRUE}
 clust1 <- tibble(department_fr = names(km.res1$cluster),
                             cluster = km.res1$cluster)
 
@@ -800,17 +833,15 @@ clust_cov_dnb <- clust_cov_dnb %>%
 datatable(clust_cov_dnb, options =list(scrollX = "300px"))
 ```
 
+The results of the cluster shows that cluster 1 is performing better with a lower incidence rate. Before concluding on the fact that a low incidence rate lead to better results, we needed to see if the difference in success rate was truly induced by the Covid 19 or if it was that these departments were generally performing better. For this comparison, we plotted all their results in two separate graphs but first we had to pivot the data for all variables into one column. 
 
-```{r}
+```{r, echo=TRUE, warning=FALSE, out.width="100%", out.height="30%"}
 clust_cov_dnb <- clust_cov_dnb %>%   
   pivot_longer(c(contains("pct")), 
                names_to = "Mention_type",
                values_to = "Rate")
 
-```
 
-
-```{r, echo=TRUE, warning=FALSE, out.width="100%", out.height="30%"}
 p <- clust_cov_dnb %>% 
   filter(cluster == 1) %>% 
   ggplot(aes(x = session, y = Rate, group = Mention_type, color = Mention_type))+
@@ -818,9 +849,10 @@ p <- clust_cov_dnb %>%
   scale_color_viridis(discrete = TRUE) +
     labs(title = "Cluster 1", x = "Session", y = "Rate in %" ) +
     theme_ipsum()
-
 ggplotly(p, tooltip = c("x" ,"y"))
 ```
+
+
 ```{r, echo=TRUE, warning=FALSE, out.width="100%", out.height="30%"}
 p <- clust_cov_dnb %>% 
   filter(cluster == 3) %>% 
@@ -834,3 +866,8 @@ ggplotly(p, tooltip = c("x" ,"y"))
 
 
 ```
+We can see that the difference has not been induced by the Covid 19 as the success rate of cluster 1 has always been higher than the one of cluster 3. Moreover, we see the same pattern for the success rate as they both increased by around 5% in 2020 and slightly went down in 2021. Regarding the distinctions, one can see that it is fairly similar in terms of percentage and pattern apart from the students graduating without honours who used to be a bigger share of the admitted students in the departments belonging to cluster 3. 
+
+To conclude on the question regarding the influence of Covid 19 on the results of the Diplome national du Brevet, we have seen through linear regressions and a cluster analysis that Covid19 had clost to no impact the success rate and distinctions. We can assume that as the Covid and the exam were on a national level the government body adapted the scale to the results of the students. 
+
+

@@ -4,6 +4,33 @@
 source(here::here("scripts/setup.R"))
 ```
 
-* Take home message
-* Limitations
-* Future work?
+##  Take home message
+
+This project allowed us to explore and analyse the results of the Diplome National du Brevet on the 2006-2021 period and discover that political decisions have a far grater impact than any other socioeconomic factor. Indeed, in 2017, we clearly saw the impact of the reform "learn better to succeed better” brought by the minister of education. The distribution of the distinctions went from 45% without, 30% AB, 20% B and 5% TB to around 25% for each. The impact of political actions is clear for the distinctions but not so much for the success rate. It increased steadily over the time period. the only evidence of the impact of a policy action on success rate can be seen in 2020 where due to the Covid 19 politics decided to cancel the final exam and grade using continuous assessment. 
+
+To come to the conclusion that political action had a bigger impact on the results of the Diplome National du Brevet than socioeconomic factors, we analysed the impact of three of them. The type of housing and lunch place was one of them. The data on student housing allowed us to discover that this factor had an impact on the distinctions the student were more likely to receive. Indeed, a student with the possibility of going to the canteen is more likely to pass with the highest hounours and less likely to have none than the average student. Conversely, students living in boarding schools will typically underperform. Surprisingly, the type of housing and lunch place has no impact on the success rate. We also explored the impact of sport through establishment labelled Generation 2024. We first saw that despite being created around the Paris Olympic, establishments form all over the country took part in this initiative. We could not see any link between a variation of the results and the labeling or not of an establishment. This probably comes from the fact that the label is built around promotion of sport in sport associations and not doing sport in school meaning that it has a smaller impact on the children. The last socio-economical factor that we analysed was the family situation through a data set about single parent families. An astonishing results was that the rate of single parent families per student admitted is stable across all french departments and remains nearly unchanged over our analysis period. The result of the analysis of a potential impact on the DNB results are that single families do not seem to impact students' performance.
+
+We also analysed the potential impact of the COVID 19 pandemic on the DNB results. In our exploration of the data we found out that the Covid19 crisis impacted more heavily the eastern part of France in 2021. However, the lock-down guidelines were nationalized meaning that all students were playing with the same rules. Therefore, we found no significant impact of the number of cases per department on the results of the Diplome National du Brevet. The only impact of Covid 19, as previously discussed, can be seen on a national level. 
+
+##  Limitations
+
+Our analysis has some clear limitations. For our analysis on single parent family we were only able to work on a departmental level and with data on the global population and not only on students passing the Diplome National du Brevet. This is problematic because it lead to some very large approximations at every level of the analysis. For the part on the impact of sport, we chose the data on the label Generation 2024. Labelled establishments have a certain duty to promote the Paris Olympics and sports in general but the objective of the label are quite large. It means that not all labelled establishments have been actively promoting the act of going out and practicing some sport on a regular basis. Having clearer objectives or using another label promoting sport activity could have lead to more conclusive results. In our analysis of the impact of Covid, we decided to take into account all cases during the year but not all patients reacted the same way leading to different impact on their performance. Moreover, the students were evaluated on the basis of continuous assesment, it would have been more conclusive to analyse the results of each assessment during the years than the final results.
+
+##  Future work
+
+For further researches, it would be interesting to analyse the impact of Covid and single parent families by establishment to have more definitive results. In the quest of finding socioeconomic factors influencing children one would have many more to analyse such as the wealth of the parents, the size of the house they live in, the number of sports clubs where they are registered, the number of hours they spend on screens, the number of kilometers traveled to go to schools. The list is clearly non-exhaustive and one could try to analyse any factor that could be related to the results of the DNB. Another very interesting research that should be done is an analysis comprising several parameters to identify the ones having the bigger impact. Such an analysis would allow the creation of a model to predict the results of the different estasblishments.
+
+## References
+
+* Bien dans ma ville (2022). *Les départements les plus peuplés de France*. Retrieved from https://www.bien-dans-ma-ville.fr/classement-departement-nb-habitant/
+
+* Cojean, T. (April 3, 2020). *Coronavirus: le bac et le brevet 2020 notés en contrôle continu*. l’Etudiant. Retrieved from https://www.letudiant.fr/bac/coronavirus-le-bac-et-le-brevet-notes-en-controle-continu.html
+
+* Vice-rectorat de Polynésie Francaise (2016) *Mieux comprendre le collège 2016*
+  https://www.monvr.pf/mieux-comprendre-le-college-2016/
+
+* Peretti, J-M (2004) *Gestion des ressources humaines*, Vuibert
+
+* Amadieu, F; Tricot, A (2022) *Les facteurs psychologiques qui ont un effet sur la réussite des étudiants*, https://doi.org/10.4000/apliut.5155
+
+* Richard, E. (january 2009) *La migration pour études collégiales: Regards d'intervenants sur l'accueil et l'intégration des nouveaux étudiants*
